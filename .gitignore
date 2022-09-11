@@ -1,0 +1,10 @@
+# IDE
+*~
+.log
+
+# Local env
+.env
+
+# Built
+dist/
+node_modules/
