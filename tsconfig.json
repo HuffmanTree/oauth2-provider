@@ -1,0 +1,11 @@
+{
+  "extends": "@tsconfig/node16/tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": "./",
+    "declaration": true,
+    "outDir": "dist",
+    "typeRoots": ["node_modules/@types", "types"]
+  },
+  "include": ["src", "types"],
+  "exclude": ["dist", "node_modules", "test"]
+}
