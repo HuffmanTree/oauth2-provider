@@ -11,7 +11,7 @@
     "doc:serve": "npm run doc:gen && http-server doc",
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix",
-    "test": "nyc ./node_modules/.bin/_mocha 'test/**/*.test.ts'"
+    "test": "NODE_ENV=test nyc ./node_modules/.bin/_mocha 'test/**/*.test.ts'"
   },
   "keywords": [],
   "author": "",
