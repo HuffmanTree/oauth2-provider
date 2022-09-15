@@ -63,8 +63,6 @@ export namespace OAuth2DatabaseClient {
  * await client.disconnect();
  */
 export class OAuth2DatabaseClient {
-  toto?: number;
-
   /**
    * @description Name of the database targetted by the client
    *
