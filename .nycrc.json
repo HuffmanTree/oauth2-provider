@@ -3,6 +3,7 @@
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules/"],
   "extension": [".ts"],
-  "reporter": ["text-summary", "html"],
-  "report-dir": "./coverage"
+  "reporter": ["text", "text-summary", "json-summary", "html"],
+  "report-dir": "./coverage",
+  "check-coverage": true
 }
