@@ -9,6 +9,10 @@
   ],
   "rules": {
     "@typescript-eslint/no-namespace": "warn",
+    "@typescript-eslint/no-unused-vars": [
+      "error",
+      { "ignoreRestSiblings": true }
+    ],
     "no-console": "error"
   }
 }
