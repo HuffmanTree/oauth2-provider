@@ -66,6 +66,10 @@ export class UserModel extends Model<
    */
   declare updatedAt: CreationOptional<string>;
 
+  verifyPassword(password: string): boolean {
+    return bcrypt.compareSync(password, this.password);
+  }
+
   /**
    * @description Initializes the model
    *
