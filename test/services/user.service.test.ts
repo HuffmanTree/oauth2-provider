@@ -62,11 +62,9 @@ describe("UserService", () => {
       .and.to.satisfy((user: UserModel) => user.id === id);
   });
 
-  it("finds a user with a valid password", () => {
+  it("finds a user from an email", () => {
     const email = faker.internet.email();
-    const password = faker.internet.password();
-    const inputPassword = password;
-    const mockUser = new UserModel({ email, password });
+    const mockUser = new UserModel({ email });
 
     userModelMock
       .expects("findOne")
@@ -74,32 +72,13 @@ describe("UserService", () => {
       .withArgs({ rejectOnEmpty: true, where: { email } })
       .returns(mockUser);
 
-    const result = service.findByCredentials(email, inputPassword);
+    const result = service.findByEmail(email);
 
     userModelMock.verify();
 
     return expect(result)
       .to.eventually.be.instanceOf(UserModel)
       .and.to.satisfy((user: UserModel) => user.email == email);
-  });
-
-  it("finds a user with an invalid password", () => {
-    const email = faker.internet.email();
-    const password = faker.internet.password();
-    const inputPassword = faker.internet.password();
-    const mockUser = new UserModel({ email, password });
-
-    userModelMock
-      .expects("findOne")
-      .once()
-      .withArgs({ rejectOnEmpty: true, where: { email } })
-      .returns(mockUser);
-
-    const result = service.findByCredentials(email, inputPassword);
-
-    userModelMock.verify();
-
-    return expect(result).to.eventually.be.rejected;
   });
 
   it("updates a user", () => {

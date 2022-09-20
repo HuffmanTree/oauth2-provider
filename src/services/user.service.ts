@@ -32,13 +32,11 @@ export class UserService {
     return result;
   }
 
-  async findByCredentials(email: string, password: string): Promise<UserModel> {
+  async findByEmail(email: string): Promise<UserModel> {
     const result = await this._model.findOne({
       rejectOnEmpty: true,
       where: { email },
     });
-
-    if (!result.verifyPassword(password)) throw new Error("Invalid password");
 
     this._logger.info(result.toJSON(), "Found user");
 
