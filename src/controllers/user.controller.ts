@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { InferAttributes } from "sequelize/types";
+import { InferAttributes } from "sequelize";
 import { Logger } from "../logger";
 import { UserModel } from "../models/user.model";
 import { UserService } from "../services/user.service";
