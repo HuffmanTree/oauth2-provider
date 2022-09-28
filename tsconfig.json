@@ -4,6 +4,7 @@
     "baseUrl": "./",
     "declaration": true,
     "outDir": "dist",
+    "strictNullChecks": true,
     "typeRoots": ["node_modules/@types", "types"]
   },
   "include": ["src", "types"],

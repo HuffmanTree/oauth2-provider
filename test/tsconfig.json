@@ -8,7 +8,8 @@
     "isolatedModules": false,
     "strict": false,
     "noImplicitAny": false,
-    "typeRoots": ["../node_modules/@types", "../types"]
+    "typeRoots": ["../node_modules/@types", "../types"],
+    "strictNullChecks": true
   },
   "exclude": ["../node_modules"],
   "include": ["./**/*.ts"]
