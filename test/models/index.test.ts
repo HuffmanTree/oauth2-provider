@@ -20,7 +20,7 @@ describe("OAuth2DatabaseClient", () => {
   it("connects the client", async () => {
     const mock = sinon.mock(Sequelize.prototype);
 
-    mock.expects("sync").once().withArgs({ alter: false });
+    mock.expects("sync").once().withArgs({ force: false });
 
     await service.connect();
 

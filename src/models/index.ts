@@ -86,7 +86,7 @@ export class OAuth2DatabaseClient {
    */
   private _port: number;
 
-  private _sequelize: Sequelize;
+  readonly sequelize: Sequelize;
 
   /**
    * @description User connected by the client
@@ -120,7 +120,7 @@ export class OAuth2DatabaseClient {
 
     this._logger = new Logger({ service: "OAuth2DatabaseClient" });
 
-    this._sequelize = new Sequelize({
+    this.sequelize = new Sequelize({
       database: this._database,
       dialect: "postgres",
       host: this._host,
@@ -135,7 +135,7 @@ export class OAuth2DatabaseClient {
       }),
     });
 
-    UserModel.initialize(this._sequelize);
+    UserModel.initialize(this.sequelize);
 
     this._logger.info({}, "Initialized models");
   }
@@ -150,8 +150,8 @@ export class OAuth2DatabaseClient {
    *  .catch((err: Error) => console.error("Error while connecting to the database:" + err.message));
    */
   async connect(): Promise<void> {
-    await this._sequelize.sync({
-      alter: process.env.NODE_ENV === "development",
+    await this.sequelize.sync({
+      force: process.env.NODE_ENV === "development",
     });
 
     const ctx = {
@@ -174,7 +174,7 @@ export class OAuth2DatabaseClient {
    *  .catch((err: Error) => console.error("Error while disconnecting from the database:" + err.message));
    */
   async disconnect(): Promise<void> {
-    await this._sequelize.close();
+    await this.sequelize.close();
 
     this._logger.info({}, "Client is closing");
   }
