@@ -2,6 +2,8 @@ import { ValidationService } from "../services/validation.service";
 import { Logger } from "../logger";
 import { JSONSchemaType } from "ajv";
 import { NextFunction, Request, Response } from "express";
+import { BadRequest } from "./error.middleware";
+import { unknownToError } from "../utils";
 
 export class ValidationMiddleware {
   private _service: ValidationService;
@@ -39,10 +41,14 @@ export class ValidationMiddleware {
 
       try {
         await Promise.all(p);
+
+        return next();
       } catch (err) {
         logger.warn({}, "Request validation failed");
 
-        return next(err);
+        const original = unknownToError(err);
+
+        return next(new BadRequest(original));
       }
     }
 
