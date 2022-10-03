@@ -53,7 +53,11 @@ export class AuthService {
   }
 
   async login(user: UserModel, password: string): Promise<string> {
-    if (!user.verifyPassword(password)) throw new Error("Invalid password");
+    if (!user.verifyPassword(password)) {
+      this._logger.debug({ user: user.id }, "Invalid password");
+
+      throw new Error("Invalid password");
+    }
 
     const { password: _, createdAt, updatedAt, ...payload } = user.toJSON();
     const token = jwt.sign(payload, this._privateKey, this._signOptions);
