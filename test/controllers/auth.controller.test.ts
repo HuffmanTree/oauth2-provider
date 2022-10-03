@@ -7,6 +7,7 @@ import { UserService } from "../../src/services/user.service";
 import { AuthService } from "../../src/services/auth.service";
 import { AuthController } from "../../src/controllers/auth.controller";
 import { UserModel } from "../../src/models/user.model";
+import { EmptyResultError } from "sequelize";
 
 describe("AuthController", () => {
   const { user: model } = new OAuth2DatabaseClient({});
@@ -106,7 +107,55 @@ describe("AuthController", () => {
     });
   });
 
-  it("fails to log a user in", () => {
+  it("fails to log a user in with an invalid email", () => {
+    const email = faker.internet.email();
+    const password = faker.internet.password();
+    const payload = {
+      email,
+      password,
+    };
+    const req = { body: payload };
+    const res = {
+      status(n: number) {
+        void n;
+
+        return this;
+      },
+      json(j: object) {
+        void j;
+
+        return this;
+      },
+    };
+    const next = () => undefined;
+
+    userServicePrototypeMock
+      .expects("findByEmail")
+      .once()
+      .withArgs(email)
+      .throws(new EmptyResultError(""));
+    authServicePrototypeMock.expects("login").never();
+
+    const statusSpy = sinon.spy(res, "status");
+    const jsonSpy = sinon.spy(res, "json");
+
+    const result = controller.login(req, res, next);
+
+    return expect(result).to.eventually.be.undefined.and.to.satisfy(() => {
+      expect(statusSpy.notCalled).to.be.true;
+      expect(jsonSpy.notCalled).to.be.true;
+
+      userServicePrototypeMock.verify();
+      authServicePrototypeMock.verify();
+
+      statusSpy.restore();
+      jsonSpy.restore();
+
+      return true;
+    });
+  });
+
+  it("fails to log a user in with an invalid password", () => {
     const email = faker.internet.email();
     const password = faker.internet.password();
     const payload = {
@@ -138,7 +187,55 @@ describe("AuthController", () => {
       .expects("login")
       .once()
       .withArgs(mockUser, password)
-      .rejects("Invalid password");
+      .throws(new Error("Invalid password"));
+
+    const statusSpy = sinon.spy(res, "status");
+    const jsonSpy = sinon.spy(res, "json");
+
+    const result = controller.login(req, res, next);
+
+    return expect(result).to.eventually.be.undefined.and.to.satisfy(() => {
+      expect(statusSpy.notCalled).to.be.true;
+      expect(jsonSpy.notCalled).to.be.true;
+
+      userServicePrototypeMock.verify();
+      authServicePrototypeMock.verify();
+
+      statusSpy.restore();
+      jsonSpy.restore();
+
+      return true;
+    });
+  });
+
+  it("fails to log a user in with another reason", () => {
+    const email = faker.internet.email();
+    const password = faker.internet.password();
+    const payload = {
+      email,
+      password,
+    };
+    const req = { body: payload };
+    const res = {
+      status(n: number) {
+        void n;
+
+        return this;
+      },
+      json(j: object) {
+        void j;
+
+        return this;
+      },
+    };
+    const next = () => undefined;
+
+    userServicePrototypeMock
+      .expects("findByEmail")
+      .once()
+      .withArgs(email)
+      .throws(new Error("Cannot access database"));
+    authServicePrototypeMock.expects("login").never();
 
     const statusSpy = sinon.spy(res, "status");
     const jsonSpy = sinon.spy(res, "json");

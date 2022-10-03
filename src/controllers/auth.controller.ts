@@ -2,6 +2,8 @@ import { NextFunction, Request, Response } from "express";
 import { AuthService } from "../services/auth.service";
 import { Logger } from "../logger";
 import { UserService } from "../services/user.service";
+import { EmptyResultError } from "sequelize";
+import { Unauthorized } from "../middlewares/error.middleware";
 
 type LoginRequestBody = { email: string; password: string };
 
@@ -20,6 +22,21 @@ export class AuthController {
     this._authService = authService;
 
     this._logger = new Logger({ service: "AuthController" });
+  }
+
+  /**
+   * @description Detects if error correspdonds to an unauthorized scenario
+   *
+   * @param {unknown} err Error caught by `login` method
+   *
+   * @returns {boolean} Whether error should be translated to unauthorized
+   */
+  private _isUnauthorized(err: unknown): boolean {
+    if (err instanceof EmptyResultError) return true;
+
+    if (err instanceof Error && err.message === "Invalid password") return true;
+
+    return false;
   }
 
   async login(
@@ -43,6 +60,12 @@ export class AuthController {
 
       res.status(200).json(json);
     } catch (err) {
+      if (this._isUnauthorized(err)) {
+        const original = new Error("Invalid email or password");
+
+        return next(new Unauthorized(original));
+      }
+
       next(err);
     }
   }
