@@ -28,8 +28,8 @@ export class AuthService {
       publicKeyFile: "/tmp/test.key.pub",
     },
     development: {
-      privateKeyFile: "/../../resources/keys/rsa.key",
-      publicKeyFile: "../../resources/keys/rsa.key.pub",
+      privateKeyFile: `${process.cwd()}/resources/keys/rsa.key`,
+      publicKeyFile: `${process.cwd()}/resources/keys/rsa.key.pub`,
       signOptions: { algorithm: "RS256" },
       verifyOptions: {
         algorithms: ["RS256"],
