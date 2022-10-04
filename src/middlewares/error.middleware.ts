@@ -34,6 +34,12 @@ export class NotFound extends HttpError {
   }
 }
 
+export class Conflict extends HttpError {
+  constructor(original: Error) {
+    super(409, Conflict.name, original);
+  }
+}
+
 export class InternalServerError extends HttpError {
   constructor(original: Error) {
     super(500, InternalServerError.name, original);

@@ -6,6 +6,7 @@ import {
   NotFound,
   InternalServerError,
   ErrorMiddleware,
+  Conflict,
 } from "../../src/middlewares/error.middleware";
 import faker from "faker";
 import itParam from "mocha-param";
@@ -19,21 +20,23 @@ describe("Error classes", () => {
         | typeof Unauthorized
         | typeof Forbidden
         | typeof NotFound
+        | typeof Conflict
         | typeof InternalServerError
       ),
-      string,
       number
     ]
   >(
     "Builds a ${value[0].name}",
     [
-      [BadRequest, faker.datatype.string(), 400],
-      [Unauthorized, faker.datatype.string(), 401],
-      [Forbidden, faker.datatype.string(), 403],
-      [NotFound, faker.datatype.string(), 404],
-      [InternalServerError, faker.datatype.string(), 500],
+      [BadRequest, 400],
+      [Unauthorized, 401],
+      [Forbidden, 403],
+      [NotFound, 404],
+      [Conflict, 409],
+      [InternalServerError, 500],
     ],
-    ([fn, message, expectedStatus]) => {
+    ([fn, expectedStatus]) => {
+      const message = faker.datatype.string();
       const err = new fn(new Error(message));
 
       expect(err).to.be.instanceOf(fn);
