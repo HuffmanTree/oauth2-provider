@@ -21,9 +21,9 @@ export class AuthMiddleware {
     const authorization = req.headers.authorization;
 
     if (!authorization) {
-      this._logger.warn({}, "Missing 'authotization' header");
+      this._logger.warn({}, "Missing 'authorization' header");
 
-      return next(new Error("Missing 'authotization' header"));
+      return next(new Error("Missing 'authorization' header"));
     }
 
     const [scheme, token] = authorization.split(" ");
