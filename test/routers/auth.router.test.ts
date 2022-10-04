@@ -1,6 +1,7 @@
 import { expect } from "chai";
 import itParam from "mocha-param";
 import { AuthController } from "../../src/controllers/auth.controller";
+import { ValidationMiddleware } from "../../src/middlewares/validation.middleware";
 import { AuthRouter } from "../../src/routers/auth.router";
 
 describe("AuthRouter", () => {
@@ -10,7 +11,7 @@ describe("AuthRouter", () => {
     const controller = { login: () => null } as unknown as AuthController;
     const middleware = {
       validateRequest: () => () => null,
-    } as unknown as AuthController;
+    } as unknown as ValidationMiddleware;
     router = new AuthRouter(controller, middleware);
   });
 
