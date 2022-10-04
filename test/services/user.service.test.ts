@@ -47,11 +47,7 @@ describe("UserService", () => {
     const id = faker.datatype.uuid();
     const mockUser = new UserModel({ id });
 
-    userModelMock
-      .expects("findByPk")
-      .once()
-      .withArgs(id, { rejectOnEmpty: true })
-      .returns(mockUser);
+    userModelMock.expects("findByPk").once().withArgs(id).returns(mockUser);
 
     const result = service.findById(id);
 

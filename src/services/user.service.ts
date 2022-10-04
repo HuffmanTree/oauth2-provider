@@ -1,3 +1,4 @@
+import { EmptyResultError } from "sequelize";
 import { Logger } from "../logger";
 import { UserModel } from "../models/user.model";
 
@@ -25,7 +26,9 @@ export class UserService {
   }
 
   async findById(id: string): Promise<UserModel> {
-    const result = await this._model.findByPk(id, { rejectOnEmpty: true });
+    const result = await this._model.findByPk(id, {
+      rejectOnEmpty: new EmptyResultError(`User not found: '${id}'`),
+    });
 
     this._logger.info(result.toJSON(), "Found user");
 
