@@ -51,7 +51,7 @@ export class UserRouter {
     {
       // GetUser
       this.router.get(
-        "/:id(^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$)",
+        "/:id([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})",
         controller.find.bind(controller)
       );
     }
@@ -87,7 +87,7 @@ export class UserRouter {
 
       // UpdateUser
       this.router.patch(
-        "/:id(^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$)",
+        "/:id([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})",
         middleware
           .validateRequest<
             Partial<{ email: string; password: string; name: string }>,
@@ -102,7 +102,7 @@ export class UserRouter {
     {
       // DestroyUser
       this.router.delete(
-        "/:id(^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$)",
+        "/:id([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})",
         controller.destroy.bind(controller)
       );
     }
