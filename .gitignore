@@ -8,3 +8,7 @@
 # Built
 dist/
 node_modules/
+
+# Tests output
+.nyc_output
+coverage
