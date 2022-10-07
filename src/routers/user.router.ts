@@ -2,11 +2,16 @@ import { Router } from "express";
 import { ValidationMiddleware } from "src/middlewares/validation.middleware";
 import { UserController } from "../controllers/user.controller";
 import { JSONSchemaType } from "ajv";
+import { AuthMiddleware } from "../middlewares/auth.middleware";
 
 export class UserRouter {
   readonly router: Router;
 
-  constructor(controller: UserController, middleware: ValidationMiddleware) {
+  constructor(
+    controller: UserController,
+    middleware: ValidationMiddleware,
+    authMiddleware: AuthMiddleware
+  ) {
     this.router = Router();
 
     {
@@ -103,6 +108,7 @@ export class UserRouter {
       // DestroyUser
       this.router.delete(
         "/:id([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})",
+        authMiddleware.authenticate.bind(authMiddleware),
         controller.destroy.bind(controller)
       );
     }

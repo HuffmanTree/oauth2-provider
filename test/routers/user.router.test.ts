@@ -3,6 +3,7 @@ import itParam from "mocha-param";
 import { UserController } from "../../src/controllers/user.controller";
 import { UserRouter } from "../../src/routers/user.router";
 import { ValidationMiddleware } from "../../src/middlewares/validation.middleware";
+import { AuthMiddleware } from "../../src/middlewares/auth.middleware";
 
 describe("UserRouter", () => {
   let router: UserRouter;
@@ -17,7 +18,10 @@ describe("UserRouter", () => {
     const middleware = {
       validateRequest: () => () => null,
     } as unknown as ValidationMiddleware;
-    router = new UserRouter(controller, middleware);
+    const authMiddleware = {
+      authenticate: () => () => null,
+    } as unknown as AuthMiddleware;
+    router = new UserRouter(controller, middleware, authMiddleware);
   });
 
   itParam(
