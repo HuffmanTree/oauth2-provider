@@ -49,6 +49,7 @@ describe("AuthMiddleware", () => {
 
         return this;
       },
+      locals: {},
       json(j: object) {
         void j;
 
@@ -77,6 +78,11 @@ describe("AuthMiddleware", () => {
     const res = {
       status(n: number) {
         void n;
+
+        return this;
+      },
+      setHeader(s: string) {
+        void s;
 
         return this;
       },
@@ -109,6 +115,11 @@ describe("AuthMiddleware", () => {
 
         return this;
       },
+      setHeader(s: string) {
+        void s;
+
+        return this;
+      },
       json(j: object) {
         void j;
 
@@ -134,6 +145,11 @@ describe("AuthMiddleware", () => {
     const res = {
       status(n: number) {
         void n;
+
+        return this;
+      },
+      setHeader(s: string) {
+        void s;
 
         return this;
       },
