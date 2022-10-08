@@ -9,15 +9,15 @@ export class PermissionMiddleware {
     this._logger = new Logger({ service: "PermissionMiddleware" });
   }
 
-  permitRequest(permissionFunction: () => boolean) {
+  permitRequest(permissionFunction: (req: Request, res: Response) => boolean) {
     const logger = this._logger;
 
     async function callback(
-      _req: Request,
-      _res: Response,
+      req: Request,
+      res: Response,
       next: NextFunction
     ): Promise<void> {
-      if (permissionFunction()) return next();
+      if (permissionFunction(req, res)) return next();
 
       logger.warn({}, "Action not allowed");
 

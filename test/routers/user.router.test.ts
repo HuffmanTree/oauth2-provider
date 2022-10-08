@@ -1,3 +1,4 @@
+import faker from "faker";
 import { expect } from "chai";
 import itParam from "mocha-param";
 import { UserController } from "../../src/controllers/user.controller";
@@ -61,4 +62,23 @@ describe("UserRouter", () => {
       expect(route).to.not.be.undefined;
     }
   );
+
+  describe("isCurrentUserTargetted", () => {
+    it("responds 'false' when current user and targetted user are not the same", () => {
+      const current = faker.datatype.uuid();
+      const target = faker.datatype.uuid();
+      const req = { params: { id: target } };
+      const res = { locals: { user: current } };
+
+      expect(UserRouter.isCurrentUserTargetted(req, res)).to.be.false;
+    });
+
+    it("responds 'true' when current user and targetted user are the same", () => {
+      const current = faker.datatype.uuid();
+      const req = { params: { id: current } };
+      const res = { locals: { user: current } };
+
+      expect(UserRouter.isCurrentUserTargetted(req, res)).to.be.true;
+    });
+  });
 });

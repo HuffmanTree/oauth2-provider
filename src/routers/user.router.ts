@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Request, Response, Router } from "express";
 import { ValidationMiddleware } from "src/middlewares/validation.middleware";
 import { UserController } from "../controllers/user.controller";
 import { JSONSchemaType } from "ajv";
@@ -64,8 +64,6 @@ export class UserRouter {
     }
 
     {
-      let permit: boolean;
-
       const bodySchema: JSONSchemaType<
         Partial<{
           email: string;
@@ -98,13 +96,8 @@ export class UserRouter {
       this.router.patch(
         "/:id([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})",
         authMiddleware.authenticate.bind(authMiddleware),
-        (req, res, next) => {
-          permit = req.params.id === res.locals.user;
-
-          next();
-        },
         permissionMiddleware
-          .permitRequest(() => permit)
+          .permitRequest(UserRouter.isCurrentUserTargetted)
           .bind(permissionMiddleware),
         middleware
           .validateRequest<
@@ -118,22 +111,19 @@ export class UserRouter {
     }
 
     {
-      let permit: boolean;
-
       // DestroyUser
       this.router.delete(
         "/:id([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})",
         authMiddleware.authenticate.bind(authMiddleware),
-        (req, res, next) => {
-          permit = req.params.id === res.locals.user;
-
-          next();
-        },
         permissionMiddleware
-          .permitRequest(() => permit)
+          .permitRequest(UserRouter.isCurrentUserTargetted)
           .bind(permissionMiddleware),
         controller.destroy.bind(controller)
       );
     }
+  }
+
+  static isCurrentUserTargetted(req: Request, res: Response): boolean {
+    return req.params.id === res.locals.user;
   }
 }
