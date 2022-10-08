@@ -3,6 +3,7 @@ import { ValidationMiddleware } from "src/middlewares/validation.middleware";
 import { UserController } from "../controllers/user.controller";
 import { JSONSchemaType } from "ajv";
 import { AuthMiddleware } from "../middlewares/auth.middleware";
+import { PermissionMiddleware } from "../middlewares/permission.middleware";
 
 export class UserRouter {
   readonly router: Router;
@@ -10,7 +11,8 @@ export class UserRouter {
   constructor(
     controller: UserController,
     middleware: ValidationMiddleware,
-    authMiddleware: AuthMiddleware
+    authMiddleware: AuthMiddleware,
+    permissionMiddleware: PermissionMiddleware
   ) {
     this.router = Router();
 
@@ -62,6 +64,8 @@ export class UserRouter {
     }
 
     {
+      let permit: boolean;
+
       const bodySchema: JSONSchemaType<
         Partial<{
           email: string;
@@ -93,6 +97,15 @@ export class UserRouter {
       // UpdateUser
       this.router.patch(
         "/:id([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})",
+        authMiddleware.authenticate.bind(authMiddleware),
+        (req, res, next) => {
+          permit = req.params.id === res.locals.user;
+
+          next();
+        },
+        permissionMiddleware
+          .permitRequest(() => permit)
+          .bind(permissionMiddleware),
         middleware
           .validateRequest<
             Partial<{ email: string; password: string; name: string }>,
@@ -105,10 +118,20 @@ export class UserRouter {
     }
 
     {
+      let permit: boolean;
+
       // DestroyUser
       this.router.delete(
         "/:id([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})",
         authMiddleware.authenticate.bind(authMiddleware),
+        (req, res, next) => {
+          permit = req.params.id === res.locals.user;
+
+          next();
+        },
+        permissionMiddleware
+          .permitRequest(() => permit)
+          .bind(permissionMiddleware),
         controller.destroy.bind(controller)
       );
     }

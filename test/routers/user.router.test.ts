@@ -4,6 +4,7 @@ import { UserController } from "../../src/controllers/user.controller";
 import { UserRouter } from "../../src/routers/user.router";
 import { ValidationMiddleware } from "../../src/middlewares/validation.middleware";
 import { AuthMiddleware } from "../../src/middlewares/auth.middleware";
+import { PermissionMiddleware } from "../../src/middlewares/permission.middleware";
 
 describe("UserRouter", () => {
   let router: UserRouter;
@@ -21,7 +22,15 @@ describe("UserRouter", () => {
     const authMiddleware = {
       authenticate: () => () => null,
     } as unknown as AuthMiddleware;
-    router = new UserRouter(controller, middleware, authMiddleware);
+    const permissionMiddleware = {
+      permitRequest: () => () => null,
+    } as unknown as PermissionMiddleware;
+    router = new UserRouter(
+      controller,
+      middleware,
+      authMiddleware,
+      permissionMiddleware
+    );
   });
 
   itParam(
