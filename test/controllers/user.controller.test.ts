@@ -2,9 +2,13 @@ import { OAuth2DatabaseClient } from "../../src/models";
 import { UserService } from "../../src/services/user.service";
 import { UserController } from "../../src/controllers/user.controller";
 import sinon from "sinon";
-import { expect } from "chai";
+import chai, { expect } from "chai";
 import faker from "faker";
 import { UserModel } from "../../src/models/user.model";
+import chaiAsPromised from "chai-as-promised";
+import { EmptyResultError, UniqueConstraintError } from "sequelize";
+
+chai.use(chaiAsPromised);
 
 describe("UserController", () => {
   const { user: model } = new OAuth2DatabaseClient({});
@@ -26,10 +30,15 @@ describe("UserController", () => {
       email: faker.internet.email(),
       password: faker.internet.password(),
     };
-    const req = { body: payload };
+    const req = { body: payload, baseUrl: "/api/users", path: "/" };
     const res = {
       status(n: number) {
         void n;
+
+        return this;
+      },
+      setHeader(k: string, v: string) {
+        void k, v;
 
         return this;
       },
@@ -49,6 +58,7 @@ describe("UserController", () => {
       .withArgs(payload)
       .returns(mockUser);
 
+    const setHeader = sinon.spy(res, "setHeader");
     const statusSpy = sinon.spy(res, "status");
     const jsonSpy = sinon.spy(res, "json");
     const nextSpy = sinon.spy(next);
@@ -56,6 +66,8 @@ describe("UserController", () => {
     const result = controller.create(req, res, next);
 
     return expect(result).to.eventually.be.undefined.and.to.satisfy(() => {
+      expect(setHeader.calledOnceWith("Location", `/api/users/${mockUser.id}`))
+        .to.be.true;
       expect(statusSpy.calledOnceWith(201)).to.be.true;
       expect(jsonSpy.calledOnceWith(userWithoutPassword)).to.be.true;
       expect(nextSpy.notCalled).to.be.true;
@@ -91,13 +103,59 @@ describe("UserController", () => {
     const next = (err?: Error) => {
       void err;
     };
-    const error = new Error();
 
     userServicePrototypeMock
       .expects("create")
       .once()
       .withArgs(payload)
-      .rejects(error);
+      .rejects(new Error());
+
+    const statusSpy = sinon.spy(res, "status");
+    const jsonSpy = sinon.spy(res, "json");
+
+    const result = controller.create(req, res, next);
+
+    return expect(result).to.eventually.be.undefined.and.to.satisfy(() => {
+      expect(statusSpy.notCalled).to.be.true;
+      expect(jsonSpy.notCalled).to.be.true;
+
+      userServicePrototypeMock.verify();
+
+      statusSpy.restore();
+      jsonSpy.restore();
+
+      return true;
+    });
+  });
+
+  it("fails to create a user when a conflict occurs", () => {
+    const payload = {
+      name: faker.name.findName(),
+      email: faker.internet.email(),
+      password: faker.internet.password(),
+    };
+    const req = { body: payload };
+    const res = {
+      status(n: number) {
+        void n;
+
+        return this;
+      },
+      json(j: object) {
+        void j;
+
+        return this;
+      },
+    };
+    const next = (err?: Error) => {
+      void err;
+    };
+
+    userServicePrototypeMock
+      .expects("create")
+      .once()
+      .withArgs(payload)
+      .rejects(new UniqueConstraintError({ errors: [{ message: "" }] }));
 
     const statusSpy = sinon.spy(res, "status");
     const jsonSpy = sinon.spy(res, "json");
@@ -184,13 +242,57 @@ describe("UserController", () => {
     const next = (err?: Error) => {
       void err;
     };
-    const error = new Error();
 
     userServicePrototypeMock
       .expects("findById")
       .once()
       .withArgs(payload.id)
-      .rejects(error);
+      .rejects(new Error());
+
+    const statusSpy = sinon.spy(res, "status");
+    const jsonSpy = sinon.spy(res, "json");
+
+    const result = controller.find(req, res, next);
+
+    return expect(result).to.eventually.be.undefined.and.to.satisfy(() => {
+      expect(statusSpy.notCalled).to.be.true;
+      expect(jsonSpy.notCalled).to.be.true;
+
+      userServicePrototypeMock.verify();
+
+      statusSpy.restore();
+      jsonSpy.restore();
+
+      return true;
+    });
+  });
+
+  it("fails to find a user when not found", () => {
+    const payload = {
+      id: faker.datatype.uuid(),
+    };
+    const req = { params: payload };
+    const res = {
+      status(n: number) {
+        void n;
+
+        return this;
+      },
+      json(j: object) {
+        void j;
+
+        return this;
+      },
+    };
+    const next = (err?: Error) => {
+      void err;
+    };
+
+    userServicePrototypeMock
+      .expects("findById")
+      .once()
+      .withArgs(payload.id)
+      .rejects(new EmptyResultError(""));
 
     const statusSpy = sinon.spy(res, "status");
     const jsonSpy = sinon.spy(res, "json");
@@ -304,7 +406,6 @@ describe("UserController", () => {
       void err;
     };
     const originalUser = new UserModel({ id: payload.id });
-    const error = new Error();
 
     userServicePrototypeMock
       .expects("findById")
@@ -315,7 +416,129 @@ describe("UserController", () => {
       .expects("update")
       .once()
       .withArgs(originalUser, req.body)
-      .rejects(error);
+      .rejects(new Error());
+
+    const statusSpy = sinon.spy(res, "status");
+    const jsonSpy = sinon.spy(res, "json");
+
+    const result = controller.update(req, res, next);
+
+    return expect(result).to.eventually.be.undefined.and.to.satisfy(() => {
+      expect(statusSpy.notCalled).to.be.true;
+      expect(jsonSpy.notCalled).to.be.true;
+
+      userServicePrototypeMock.verify();
+
+      statusSpy.restore();
+      jsonSpy.restore();
+
+      return true;
+    });
+  });
+
+  it("fails to update a user when not found", () => {
+    const payload = {
+      id: faker.datatype.uuid(),
+      name: faker.name.findName(),
+      email: faker.internet.email(),
+      password: faker.internet.password(),
+    };
+    const req = {
+      params: { id: payload.id },
+      body: {
+        name: payload.name,
+        email: payload.email,
+        password: payload.password,
+      },
+    };
+    const res = {
+      status(n: number) {
+        void n;
+
+        return this;
+      },
+      json(j: object) {
+        void j;
+
+        return this;
+      },
+    };
+    const next = (err?: Error) => {
+      void err;
+    };
+    const originalUser = new UserModel({ id: payload.id });
+
+    userServicePrototypeMock
+      .expects("findById")
+      .once()
+      .withArgs(payload.id)
+      .returns(originalUser);
+    userServicePrototypeMock
+      .expects("update")
+      .once()
+      .withArgs(originalUser, req.body)
+      .rejects(new EmptyResultError(""));
+
+    const statusSpy = sinon.spy(res, "status");
+    const jsonSpy = sinon.spy(res, "json");
+
+    const result = controller.update(req, res, next);
+
+    return expect(result).to.eventually.be.undefined.and.to.satisfy(() => {
+      expect(statusSpy.notCalled).to.be.true;
+      expect(jsonSpy.notCalled).to.be.true;
+
+      userServicePrototypeMock.verify();
+
+      statusSpy.restore();
+      jsonSpy.restore();
+
+      return true;
+    });
+  });
+
+  it("fails to update a user when a conflict occurs", () => {
+    const payload = {
+      id: faker.datatype.uuid(),
+      name: faker.name.findName(),
+      email: faker.internet.email(),
+      password: faker.internet.password(),
+    };
+    const req = {
+      params: { id: payload.id },
+      body: {
+        name: payload.name,
+        email: payload.email,
+        password: payload.password,
+      },
+    };
+    const res = {
+      status(n: number) {
+        void n;
+
+        return this;
+      },
+      json(j: object) {
+        void j;
+
+        return this;
+      },
+    };
+    const next = (err?: Error) => {
+      void err;
+    };
+    const originalUser = new UserModel({ id: payload.id });
+
+    userServicePrototypeMock
+      .expects("findById")
+      .once()
+      .withArgs(payload.id)
+      .returns(originalUser);
+    userServicePrototypeMock
+      .expects("update")
+      .once()
+      .withArgs(originalUser, req.body)
+      .rejects(new UniqueConstraintError({ errors: [{ message: "" }] }));
 
     const statusSpy = sinon.spy(res, "status");
     const jsonSpy = sinon.spy(res, "json");
@@ -407,7 +630,6 @@ describe("UserController", () => {
       void err;
     };
     const originalUser = new UserModel({ id: payload.id });
-    const error = new Error();
 
     userServicePrototypeMock
       .expects("findById")
@@ -418,7 +640,58 @@ describe("UserController", () => {
       .expects("destroy")
       .once()
       .withArgs(originalUser)
-      .rejects(error);
+      .rejects(new Error());
+
+    const statusSpy = sinon.spy(res, "status");
+    const jsonSpy = sinon.spy(res, "json");
+
+    const result = controller.destroy(req, res, next);
+
+    return expect(result).to.eventually.be.undefined.and.to.satisfy(() => {
+      expect(statusSpy.notCalled).to.be.true;
+      expect(jsonSpy.notCalled).to.be.true;
+
+      userServicePrototypeMock.verify();
+
+      statusSpy.restore();
+      jsonSpy.restore();
+
+      return true;
+    });
+  });
+
+  it("fails to destroy a user when not found", () => {
+    const payload = {
+      id: faker.datatype.uuid(),
+    };
+    const req = { params: payload };
+    const res = {
+      status(n: number) {
+        void n;
+
+        return this;
+      },
+      json(j: object) {
+        void j;
+
+        return this;
+      },
+    };
+    const next = (err?: Error) => {
+      void err;
+    };
+    const originalUser = new UserModel({ id: payload.id });
+
+    userServicePrototypeMock
+      .expects("findById")
+      .once()
+      .withArgs(payload.id)
+      .returns(originalUser);
+    userServicePrototypeMock
+      .expects("destroy")
+      .once()
+      .withArgs(originalUser)
+      .rejects(new EmptyResultError(""));
 
     const statusSpy = sinon.spy(res, "status");
     const jsonSpy = sinon.spy(res, "json");

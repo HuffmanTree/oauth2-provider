@@ -1,8 +1,13 @@
 import { NextFunction, Request, Response } from "express";
-import { InferAttributes } from "sequelize";
+import {
+  EmptyResultError,
+  InferAttributes,
+  UniqueConstraintError,
+} from "sequelize";
 import { Logger } from "../logger";
 import { UserModel } from "../models/user.model";
 import { UserService } from "../services/user.service";
+import { Conflict, NotFound } from "../middlewares/error.middleware";
 
 type CreateRequestBody = Omit<
   InferAttributes<UserModel>,
@@ -38,6 +43,32 @@ export class UserController {
     this._logger = new Logger({ service: "UserController" });
   }
 
+  /**
+   * @description Detects if error correspdonds to a conflict scenario
+   *
+   * @param {unknown} err Error caught by `create` and `update` methods
+   *
+   * @returns {boolean} Whether error should be translated to conflict
+   */
+  private _isConflict(err: unknown): err is UniqueConstraintError {
+    if (err instanceof UniqueConstraintError) return true;
+
+    return false;
+  }
+
+  /**
+   * @description Detects if error correspdonds to a not found scenario
+   *
+   * @param {unknown} err Error caught by `find`, `update` and `destroy` methods
+   *
+   * @returns {boolean} Whether error should be translated to not found
+   */
+  private _isNotFound(err: unknown): err is EmptyResultError {
+    if (err instanceof EmptyResultError) return true;
+
+    return false;
+  }
+
   async create(
     req: Request<
       Record<string, undefined>,
@@ -55,8 +86,19 @@ export class UserController {
       const result = await this._service.create({ email, name, password });
       const { password: _, ...json } = result.toJSON();
 
+      /**
+       * - `req.baseUrl` - path the user controller is mounted on -> `/api/users`
+       * - `req.path` - path the create method is mounted on -> `/`
+       */
+      res.setHeader("Location", `${req.baseUrl}${req.path}${json.id}`);
       res.status(201).json(json);
     } catch (err) {
+      if (this._isConflict(err)) {
+        const original = new Error(err.errors[0].message);
+
+        return next(new Conflict(original));
+      }
+
       next(err);
     }
   }
@@ -76,6 +118,12 @@ export class UserController {
 
       res.status(200).json(json);
     } catch (err) {
+      if (this._isNotFound(err)) {
+        const original = err;
+
+        return next(new NotFound(original));
+      }
+
       next(err);
     }
   }
@@ -101,6 +149,18 @@ export class UserController {
 
       res.status(200).json(json);
     } catch (err) {
+      if (this._isNotFound(err)) {
+        const original = err;
+
+        return next(new NotFound(original));
+      }
+
+      if (this._isConflict(err)) {
+        const original = new Error(err.errors[0].message);
+
+        return next(new Conflict(original));
+      }
+
       next(err);
     }
   }
@@ -121,6 +181,12 @@ export class UserController {
 
       res.status(200).json(json);
     } catch (err) {
+      if (this._isNotFound(err)) {
+        const original = err;
+
+        return next(new NotFound(original));
+      }
+
       next(err);
     }
   }
