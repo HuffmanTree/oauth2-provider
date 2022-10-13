@@ -1,5 +1,6 @@
 import { Sequelize } from "sequelize";
 import { Logger } from "../logger";
+import { ProjectModel } from "./project.model";
 import { UserModel } from "./user.model";
 
 /**
@@ -137,6 +138,8 @@ export class OAuth2DatabaseClient {
 
     UserModel.initialize(this.sequelize);
 
+    ProjectModel.initialize(this.sequelize);
+
     this._logger.info({}, "Initialized models");
   }
 
@@ -184,5 +187,12 @@ export class OAuth2DatabaseClient {
    */
   get user(): typeof UserModel {
     return UserModel;
+  }
+
+  /**
+   * @description Associated `ProjectModel` static instance
+   */
+  get project(): typeof ProjectModel {
+    return ProjectModel;
   }
 }
