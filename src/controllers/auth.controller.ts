@@ -40,11 +40,7 @@ export class AuthController {
   }
 
   async login(
-    req: Request<
-      Record<string, undefined>,
-      LoginResponseBody,
-      LoginRequestBody
-    >,
+    req: Request<Record<string, string>, LoginResponseBody, LoginRequestBody>,
     res: Response<LoginResponseBody>,
     next: NextFunction
   ): Promise<void> {

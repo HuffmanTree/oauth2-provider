@@ -58,11 +58,7 @@ export class ProjectController {
   }
 
   async create(
-    req: Request<
-      Record<string, undefined>,
-      CreateResponseBody,
-      CreateRequestBody
-    >,
+    req: Request<Record<string, string>, CreateResponseBody, CreateRequestBody>,
     res: Response<CreateResponseBody>,
     next: NextFunction
   ): Promise<void> {
