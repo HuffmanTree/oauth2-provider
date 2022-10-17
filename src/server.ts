@@ -12,6 +12,9 @@ import { UserService } from "./services/user.service";
 import { AuthService } from "./services/auth.service";
 import { ErrorMiddleware } from "./middlewares/error.middleware";
 import { UserController } from "./controllers/user.controller";
+import { ProjectController } from "./controllers/project.controller";
+import { ProjectRouter } from "./routers/project.router";
+import { ProjectService } from "./services/project.service";
 import { UserRouter } from "./routers/user.router";
 import { AuthMiddleware } from "./middlewares/auth.middleware";
 import { PermissionMiddleware } from "./middlewares/permission.middleware";
@@ -60,6 +63,8 @@ export class OAuth2Server {
 
     const userService = new UserService(this.database.user);
 
+    const projectService = new ProjectService(this.database.project);
+
     const authService = new AuthService();
 
     /**
@@ -68,6 +73,8 @@ export class OAuth2Server {
     const userController = new UserController(userService);
 
     const authController = new AuthController(userService, authService);
+
+    const projectController = new ProjectController(projectService);
 
     /**
      * Initializes middlewares
@@ -92,8 +99,15 @@ export class OAuth2Server {
       permissionMiddleware
     );
 
+    const projectRouter = new ProjectRouter(
+      projectController,
+      validationMiddleware,
+      authMiddleware
+    );
+
     this.app.use("/api/auth", authRouter.router);
     this.app.use("/api/users", userRouter.router);
+    this.app.use("/api/projects", projectRouter.router);
     this.app.use(errorMiddleware.notFound.bind(errorMiddleware));
     this.app.use(errorMiddleware.handleError.bind(errorMiddleware));
   }
