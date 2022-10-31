@@ -136,7 +136,8 @@ export class OAuth2Server {
     this._server.close(() => {
       this._logger.info({}, "Server is closing");
 
-      if (process.env.NODE_ENV !== "test") process.exit(0);
+      if (!["ci", "test"].includes(String(process.env.NODE_ENV)))
+        process.exit(0);
     });
   }
 }

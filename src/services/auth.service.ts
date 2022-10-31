@@ -27,6 +27,10 @@ export class AuthService {
       privateKeyFile: "/tmp/test.key",
       publicKeyFile: "/tmp/test.key.pub",
     },
+    ci: {
+      privateKeyFile: "/tmp/test.key",
+      publicKeyFile: "/tmp/test.key.pub",
+    },
     development: {
       privateKeyFile: `${process.cwd()}/resources/keys/rsa.key`,
       publicKeyFile: `${process.cwd()}/resources/keys/rsa.key.pub`,

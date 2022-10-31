@@ -30,7 +30,7 @@ export class Logger {
       level: process.env.WINSTON_LEVEL || "info",
       levels: Logger.LOG_LEVELS,
       defaultMeta: metadata,
-      silent: process.env.NODE_ENV === "test",
+      silent: ["ci", "test"].includes(String(process.env.NODE_ENV)),
     });
   }
 
