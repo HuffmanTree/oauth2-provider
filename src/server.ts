@@ -1,23 +1,24 @@
-import { Server } from "http";
 import bodyParser from "body-parser";
 import cors from "cors";
 import express, { Express } from "express";
+import { Server } from "http";
+import path from "path";
+import { AuthController } from "./controllers/auth.controller";
+import { ProjectController } from "./controllers/project.controller";
+import { UserController } from "./controllers/user.controller";
 import { Logger } from "./logger";
+import { AuthMiddleware } from "./middlewares/auth.middleware";
+import { ErrorMiddleware } from "./middlewares/error.middleware";
+import { PermissionMiddleware } from "./middlewares/permission.middleware";
+import { ValidationMiddleware } from "./middlewares/validation.middleware";
 import { OAuth2DatabaseClient } from "./models";
 import { AuthRouter } from "./routers/auth.router";
-import { ValidationMiddleware } from "./middlewares/validation.middleware";
-import { ValidationService } from "./services/validation.service";
-import { AuthController } from "./controllers/auth.controller";
-import { UserService } from "./services/user.service";
-import { AuthService } from "./services/auth.service";
-import { ErrorMiddleware } from "./middlewares/error.middleware";
-import { UserController } from "./controllers/user.controller";
-import { ProjectController } from "./controllers/project.controller";
 import { ProjectRouter } from "./routers/project.router";
-import { ProjectService } from "./services/project.service";
 import { UserRouter } from "./routers/user.router";
-import { AuthMiddleware } from "./middlewares/auth.middleware";
-import { PermissionMiddleware } from "./middlewares/permission.middleware";
+import { AuthService } from "./services/auth.service";
+import { ProjectService } from "./services/project.service";
+import { UserService } from "./services/user.service";
+import { ValidationService } from "./services/validation.service";
 
 export namespace OAuth2Server {
   export interface Config {
@@ -44,6 +45,7 @@ export class OAuth2Server {
     this.app.use(bodyParser.urlencoded({ extended: true }));
     this.app.use(bodyParser.json());
     this.app.use(cors());
+    this.app.use("/static", express.static(path.join(process.cwd(), "static")));
 
     this.host = host || process.env.EXPRESS_HOST || "localhost";
 
