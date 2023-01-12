@@ -6,7 +6,10 @@
     "outDir": "dist",
     "resolveJsonModule": true,
     "strictNullChecks": true,
-    "typeRoots": ["node_modules/@types", "types"]
+    "typeRoots": ["node_modules/@types", "types"],
+    "plugins": [{
+      "name": "typescript-eslint-language-service"
+    }]
   },
   "include": ["src", "types"],
   "exclude": ["dist", "node_modules", "test"]
