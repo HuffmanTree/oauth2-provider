@@ -23,7 +23,7 @@ describe("Error classes", () => {
         | typeof Conflict
         | typeof InternalServerError
       ),
-      number
+      number,
     ]
   >(
     "Builds a ${value[0].name}",

@@ -10,7 +10,7 @@ describe("Utils", () => {
         ["'undefined'", undefined, ""],
         ["'null'", null, ""],
         ["a string", "hello", "hello"],
-        ["an non-null object", { say: "hello" }, '{"say":"hello"}'],
+        ["an non-null object", { say: "hello" }, "{\"say\":\"hello\"}"],
         ["an Error", new Error("my message"), "my message"],
       ],
       (value) => {

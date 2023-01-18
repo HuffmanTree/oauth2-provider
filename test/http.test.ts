@@ -69,7 +69,7 @@ describe("HTTP API", () => {
           .expect("Content-Type", /json/)
           .expect(400)
           .expect({
-            message: 'data/email must match format "email"',
+            message: "data/email must match format 'email'",
             name: "BadRequest",
             status: 400,
           })
@@ -244,7 +244,7 @@ describe("HTTP API", () => {
           .expect("Content-Type", /json/)
           .expect(400)
           .expect({
-            message: 'data/email must match format "email"',
+            message: "data/email must match format 'email'",
             name: "BadRequest",
             status: 400,
           })
@@ -527,7 +527,7 @@ describe("HTTP API", () => {
           .expect("Content-Type", /json/)
           .expect(400)
           .expect({
-            message: 'data/email must match format "email"',
+            message: "data/email must match format 'email'",
             name: "BadRequest",
             status: 400,
           })
@@ -1030,7 +1030,7 @@ describe("HTTP API", () => {
           .expect("Content-Type", /json/)
           .expect(400)
           .expect({
-            message: 'data/redirectURL must match format "uri"',
+            message: "data/redirectURL must match format 'uri'",
             name: "BadRequest",
             status: 400,
           })
