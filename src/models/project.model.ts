@@ -82,6 +82,12 @@ export class ProjectModel extends Model<
    */
   declare updatedAt: CreationOptional<string>;
 
+  allowRequest(redirectURL: string, scope: Array<string>): boolean {
+    if (redirectURL !== this.redirectURL) return false;
+
+    return scope.every(s => this.scope.includes(s));
+  }
+
   verifySecret(secret: string): boolean {
     return bcrypt.compareSync(secret, this.secret);
   }

@@ -38,4 +38,41 @@ describe("ProjectModel", () => {
       expect(project.verifySecret(inputSecret)).to.equal(expectedValidated);
     }
   );
+
+  itParam(
+    "detects ${value.state} request",
+    [
+      {
+	state: "a disallowed (invalid 'redirectURL')",
+	projectRedirectURL: "this_is_a_redirect_url",
+	projectScope: ["field1", "field2"],
+	inputRedirectURL: "this_is_another_redirect_url",
+	inputScope: ["field1", "field2"],
+        expectedValidated: false,
+      },
+      {
+	state: "a disallowed (invalid 'scope')",
+	projectRedirectURL: "this_is_a_redirect_url",
+	projectScope: ["field1", "field2"],
+	inputRedirectURL: "this_is_a_redirect_url",
+	inputScope: ["field1", "field3"],
+        expectedValidated: false,
+      },
+      {
+	state: "an allowed",
+	projectRedirectURL: "this_is_a_redirect_url",
+	projectScope: ["field1", "field2"],
+	inputRedirectURL: "this_is_a_redirect_url",
+	inputScope: ["field1", "field2"],
+        expectedValidated: true,
+      },
+    ],
+    ({ projectRedirectURL, projectScope, inputRedirectURL, inputScope, expectedValidated }) => {
+      const project = new ProjectModel({
+        redirectURL: projectRedirectURL,
+        scope: projectScope,
+      });
+
+      expect(project.allowRequest(inputRedirectURL, inputScope)).to.equal(expectedValidated);
+    });
 });
