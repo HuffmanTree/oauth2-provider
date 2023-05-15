@@ -1,6 +1,7 @@
 import { Logger } from "../logger";
 import { RequestModel } from "../models/request.model";
 import { randomBytes } from "crypto";
+import { EmptyResultError } from "sequelize";
 
 export class RequestService {
   private _logger: Logger;
@@ -23,6 +24,20 @@ export class RequestService {
     const result = await this._model.create({ ...payload, code });
 
     this._logger.info(result.toJSON(), "Created request");
+
+    return result;
+  }
+
+  async findByClientIdAndCode(payload: {
+    clientId: string,
+    code: string
+  }): Promise<RequestModel> {
+    const result = await this._model.findOne({
+      where: payload,
+      rejectOnEmpty: new EmptyResultError(`Request not found for project: '${payload.clientId}'`),
+    });
+
+    this._logger.info(result.toJSON(), "Found request");
 
     return result;
   }

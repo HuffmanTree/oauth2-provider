@@ -80,4 +80,24 @@ describe("RequestService", () => {
       .and.to.match(/^[0-9a-f]+$/)
       .and.to.have.lengthOf(128);
   });
+
+  it("finds a request from its client id and authorization code", () => {
+    const clientId = faker.datatype.uuid();
+    const code = faker.datatype.hexaDecimal(16).substring(2).toLowerCase();
+    const mockRequest = new RequestModel({ clientId, code });
+
+    requestModelMock
+      .expects("findOne")
+      .once()
+      .withArgs(sinon.match({ where: { clientId, code } }))
+      .returns(mockRequest);
+
+    const result = service.findByClientIdAndCode({ clientId, code });
+
+    requestModelMock.verify();
+
+    return expect(result)
+      .to.eventually.be.instanceOf(RequestModel)
+      .and.to.satisfy((request: RequestModel) => (request.clientId === clientId) && (request.code === code));
+  });
 });
