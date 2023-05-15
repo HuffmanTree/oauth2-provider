@@ -30,7 +30,10 @@ describe("RequestService", () => {
       clientId: faker.datatype.uuid(),
       scope: faker.datatype.array().map((i) => i.toString()),
     };
-    const mockRequest = new RequestModel(payload);
+    const mockRequest = new RequestModel({
+      ...payload,
+      code: faker.datatype.hexaDecimal(16).substring(2).toLowerCase(),
+    });
 
     requestModelMock
       .expects("create")

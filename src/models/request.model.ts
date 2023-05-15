@@ -56,9 +56,9 @@ export class RequestModel extends Model<
   declare scope: Array<string>;
   
   /**
-   * @description Hashed authorization code of the request
+   * @description Temporary authorization code of the request
    *
-   * @example "$2a$04$xJpe5CHncltnJsWIflNoGuFjeioy2ge35Mp6HycUoHa09/6EF6beO"
+   * @example "f862e77e46b6eab3"
    */
   declare code: string;
 
@@ -134,6 +134,7 @@ export class RequestModel extends Model<
             key: "id",
             deferrable: Deferrable.INITIALLY_IMMEDIATE(),
           },
+          unique: "project_code",
         },
 	scope: {
           comment: "Scope of the request",
@@ -141,12 +142,10 @@ export class RequestModel extends Model<
           allowNull: false,
         },
         code: {
-          comment: "Hashed authorization code of the request",
+          comment: "Temporary authorization code of the request",
           type: DataTypes.STRING,
           allowNull: false,
-          set(value: string): void {
-            this.setDataValue("code", bcrypt.hashSync(value, 10));
-          },
+          unique: "project_code",
         },
         token: {
           comment: "Hashed access token of the request",

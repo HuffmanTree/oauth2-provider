@@ -24,11 +24,6 @@ export class RequestService {
 
     this._logger.info(result.toJSON(), "Created request");
 
-    /**
-     * We need the request code to be displayed after creation
-     */
-    result.setDataValue("code", code);
-
     return result;
   }
 }
