@@ -53,4 +53,31 @@ describe("RequestService", () => {
       .and.to.match(/^[0-9a-f]+$/)
       .and.to.have.lengthOf(16);
   });
+
+  it("adds a token to a request", () => {
+    const mockRequest = new RequestModel({
+      resourceOwner: faker.datatype.uuid(),
+      clientId: faker.datatype.uuid(),
+      scope: faker.datatype.array().map((i) => i.toString()),
+      code: faker.datatype.hexaDecimal(16).substring(2).toLowerCase(),
+    });
+
+    requestModelPrototypeMock
+      .expects("update")
+      .once()
+      .withArgs("token", sinon.match(/^[0-9a-f]+$/))
+      .returns(mockRequest);
+
+    const result = service.token(mockRequest);
+
+    requestModelMock.verify();
+
+    return expect(result)
+      .to.eventually.be.instanceOf(RequestModel)
+      .and.to.satisfy((request: RequestModel) => request.equals(mockRequest))
+      .and.to.have.property("token")
+      .and.to.be.a("string")
+      .and.to.match(/^[0-9a-f]+$/)
+      .and.to.have.lengthOf(128);
+  });
 });

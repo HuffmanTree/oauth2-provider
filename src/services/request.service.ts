@@ -26,4 +26,19 @@ export class RequestService {
 
     return result;
   }
+
+  async token(request: RequestModel): Promise<RequestModel> {
+    const token = randomBytes(64).toString("hex");
+
+    const result = await request.update("token", token);
+
+    this._logger.info(result.toJSON(), "Updated request");
+
+    /**
+     * We need the request token to be displayed after update
+     */
+    result.setDataValue("token", token);
+
+    return result;
+  }
 }
