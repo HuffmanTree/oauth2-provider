@@ -25,8 +25,9 @@ export class UserService {
     return result;
   }
 
-  async findById(id: string): Promise<UserModel> {
+  async findById(id: string, attributes?: string[]): Promise<UserModel> {
     const result = await this._model.findByPk(id, {
+      attributes,
       rejectOnEmpty: new EmptyResultError(`User not found: '${id}'`),
     });
 

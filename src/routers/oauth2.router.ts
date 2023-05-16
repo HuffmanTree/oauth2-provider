@@ -123,6 +123,7 @@ export class OAuth2Router {
       // UserInfo
       this.router.get(
         "/userinfo",
+        authMiddleware.authenticate.bind(authMiddleware),
         controller.info.bind(controller)
       );
     }

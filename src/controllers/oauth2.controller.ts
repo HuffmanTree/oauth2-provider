@@ -4,6 +4,8 @@ import { Logger } from "../logger";
 import { RequestService } from "../services/request.service";
 import { EmptyResultError } from "sequelize";
 import { Forbidden } from "../middlewares/error.middleware";
+import { UserModel } from "../models/user.model";
+import { UserService } from "src/services/user.service";
 
 type AuthorizeRequestQuery = {
   client_id: string,
@@ -32,10 +34,18 @@ export class OAuth2Controller {
 
   private _requestService: RequestService;
 
-  constructor(projectService: ProjectService, requestService: RequestService) {
+  private _userService: UserService;
+
+  constructor(
+    projectService: ProjectService,
+    requestService: RequestService,
+    userService: UserService
+  ) {
     this._projectService = projectService;
 
     this._requestService = requestService;
+
+    this._userService = userService;
 
     this._logger = new Logger({ service: "OAuth2Controller" });
   }
@@ -43,7 +53,7 @@ export class OAuth2Controller {
   /**
    * @description Detects if error correspdonds to a forbidden scenario
    *
-   * @param {unknown} err Error caught by `authorize` and `token` method
+   * @param {unknown} err Error caught by `authorize`, `token` and `info` method
    *
    * @returns {boolean} Whether error should be translated to forbidden
    */
@@ -137,16 +147,25 @@ export class OAuth2Controller {
   }
 
   async info(
-    req: Request,
+    req: Request<Record<string, string>, Record<string, string>>,
     res: Response,
     next: NextFunction
   ): Promise<void> {
     try {
-      const id = "user_id";
-      const json = { id };
+      const token = res.locals.access;
+      const request = await this._requestService.findByToken({ token });
+      const user = await this._userService.findById(request.resourceOwner, request.scope);
+
+      const json = user.toJSON();
 
       res.status(200).json(json);
     } catch (err) {
+      if (this._isForbidden(err)) {
+        const original = new Error("Project not allowed to request");
+
+        return next(new Forbidden(original));
+      }
+
       next(err);
     }
   }
