@@ -4,6 +4,7 @@ import express, { Express } from "express";
 import { Server } from "http";
 import path from "path";
 import { AuthController } from "./controllers/auth.controller";
+import { OAuth2Controller } from "./controllers/oauth2.controller";
 import { ProjectController } from "./controllers/project.controller";
 import { UserController } from "./controllers/user.controller";
 import { Logger } from "./logger";
@@ -13,10 +14,12 @@ import { PermissionMiddleware } from "./middlewares/permission.middleware";
 import { ValidationMiddleware } from "./middlewares/validation.middleware";
 import { OAuth2DatabaseClient } from "./models";
 import { AuthRouter } from "./routers/auth.router";
+import { OAuth2Router } from "./routers/oauth2.router";
 import { ProjectRouter } from "./routers/project.router";
 import { UserRouter } from "./routers/user.router";
 import { AuthService } from "./services/auth.service";
 import { ProjectService } from "./services/project.service";
+import { RequestService } from "./services/request.service";
 import { UserService } from "./services/user.service";
 import { ValidationService } from "./services/validation.service";
 
@@ -67,6 +70,8 @@ export class OAuth2Server {
 
     const projectService = new ProjectService(this.database.project);
 
+    const requestService = new RequestService(this.database.request);
+
     const authService = new AuthService();
 
     /**
@@ -77,6 +82,8 @@ export class OAuth2Server {
     const authController = new AuthController(userService, authService);
 
     const projectController = new ProjectController(projectService);
+
+    const oauth2Controller = new OAuth2Controller(projectService, requestService, userService);
 
     /**
      * Initializes middlewares
@@ -107,9 +114,26 @@ export class OAuth2Server {
       authMiddleware
     );
 
+    const oauth2Router = new OAuth2Router(
+      oauth2Controller,
+      validationMiddleware,
+      authMiddleware
+    );
+
+
+    this.app.use((req, res, next) => {
+      this._logger.info({
+	headers: req.headers,
+	body: req.body,
+      }, `${req.method.toUpperCase()} ${req.url}`);
+
+      next();
+    });
+
     this.app.use("/api/auth", authRouter.router);
     this.app.use("/api/users", userRouter.router);
     this.app.use("/api/projects", projectRouter.router);
+    this.app.use("/api/oauth2/", oauth2Router.router);
     this.app.use(errorMiddleware.notFound.bind(errorMiddleware));
     this.app.use(errorMiddleware.handleError.bind(errorMiddleware));
   }
