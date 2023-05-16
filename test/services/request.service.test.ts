@@ -101,4 +101,24 @@ describe("RequestService", () => {
       .to.eventually.be.instanceOf(RequestModel)
       .and.to.satisfy((request: RequestModel) => (request.clientId === clientId) && (request.code === code));
   });
+
+  it("finds a request from its client id and access token", () => {
+    const clientId = faker.datatype.uuid();
+    const token = faker.datatype.hexaDecimal(64).substring(2).toLowerCase();
+    const mockRequest = new RequestModel({ clientId, token });
+
+    requestModelMock
+      .expects("findOne")
+      .once()
+      .withArgs(sinon.match({ where: { clientId, token } }))
+      .returns(mockRequest);
+
+    const result = service.findByClientIdAndToken({ clientId, token });
+
+    requestModelMock.verify();
+
+    return expect(result)
+      .to.eventually.be.instanceOf(RequestModel)
+      .and.to.satisfy((request: RequestModel) => (request.clientId === clientId) && (request.token === token));
+  });
 });

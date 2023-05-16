@@ -42,6 +42,20 @@ export class RequestService {
     return result;
   }
 
+  async findByClientIdAndToken(payload: {
+    clientId: string,
+    token: string
+  }): Promise<RequestModel> {
+    const result = await this._model.findOne({
+      where: payload,
+      rejectOnEmpty: new EmptyResultError(`Request not found for project: '${payload.clientId}'`),
+    });
+
+    this._logger.info(result.toJSON(), "Found request");
+
+    return result;
+  }
+
   async token(request: RequestModel): Promise<RequestModel> {
     const token = randomBytes(64).toString("hex");
 
