@@ -4,7 +4,6 @@ import { Logger } from "../logger";
 import { RequestService } from "../services/request.service";
 import { EmptyResultError } from "sequelize";
 import { Forbidden } from "../middlewares/error.middleware";
-import { UserModel } from "../models/user.model";
 import { UserService } from "src/services/user.service";
 
 type AuthorizeRequestQuery = {
