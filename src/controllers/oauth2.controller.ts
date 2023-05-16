@@ -12,6 +12,19 @@ type AuthorizeRequestQuery = {
   scope: string
 };
 
+type TokenRequestBody = {
+  client_id: string,
+  client_secret: string,
+  code: string,
+  grant_type: string,
+  redirect_uri: string,
+};
+
+type TokenResponseBody = {
+  access_token: string | null,
+  token_type: string,
+};
+
 export class OAuth2Controller {
   private _logger: Logger;
 
@@ -30,7 +43,7 @@ export class OAuth2Controller {
   /**
    * @description Detects if error correspdonds to a forbidden scenario
    *
-   * @param {unknown} err Error caught by `authorize` method
+   * @param {unknown} err Error caught by `authorize` and `token` method
    *
    * @returns {boolean} Whether error should be translated to forbidden
    */
@@ -74,6 +87,44 @@ export class OAuth2Controller {
       const url = `${redirect_uri}?code=${result.code}`;
 
       res.redirect(url);
+    } catch (err) {
+      if (this._isForbidden(err)) {
+        const original = new Error("Project not allowed to request");
+
+        return next(new Forbidden(original));
+      }
+
+      next(err);
+    }
+  }
+
+  async token(
+    req: Request<Record<string, string>, TokenResponseBody, TokenRequestBody>,
+    res: Response<TokenResponseBody>,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const { client_id: clientId, client_secret: clientSecret, code } = req.body;
+
+      const request = await this._requestService.findByClientIdAndCode({ clientId, code });
+      const project = await this._projectService.findById(clientId);
+
+      if (!project.verifySecret(clientSecret)) {
+        this._logger.debug({ project: project.id }, "Disallowed request");
+
+        throw new Error("Disallowed request");
+      }
+
+      this._logger.info({}, "Generating a token");
+
+      const result = await this._requestService.token(request);
+
+      const json = {
+	access_token: result.token,
+        token_type: "Bearer",
+      };
+
+      res.status(200).json(json);
     } catch (err) {
       if (this._isForbidden(err)) {
         const original = new Error("Project not allowed to request");

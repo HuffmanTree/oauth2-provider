@@ -211,4 +211,66 @@ describe("OAuth2Controller", () => {
       return true;
     });
   });
+
+  it("computes an oauth2 access token", () => {
+    const clientId = faker.datatype.uuid();
+    const clientSecret = faker.datatype.hexaDecimal(32).substring(2).toLowerCase();
+    const code = faker.datatype.hexaDecimal(16).substring(2).toLowerCase();
+
+    const payload = {
+      client_id: clientId,
+      client_secret: clientSecret,
+      code,
+    };
+    const req = { body: payload };
+    const res = {
+      status(n: number) {
+        void n;
+
+        return this;
+      },
+      json(j: object) {
+        void j;
+
+        return this;
+      },
+    };
+    const next = () => undefined;
+    const mockRequest = new RequestModel({ clientId, code });
+
+    requestServicePrototypeMock
+      .expects("findByClientIdAndCode")
+      .once()
+      .withArgs({
+        clientId,
+        code,
+      })
+      .returns(mockRequest);
+    requestServicePrototypeMock
+      .expects("token")
+      .once()
+      .returns({ token: "token" });
+    projectServicePrototypeMock
+      .expects("findById")
+      .once()
+      .withArgs(clientId)
+      .returns({ verifySecret: () => true });
+
+    const json = sinon.spy(res, "json");
+    const status = sinon.spy(res, "status");
+    const nextSpy = sinon.spy(next);
+
+    const result = controller.token(req, res, next);
+
+    return expect(result).to.eventually.be.undefined.and.to.satisfy(() => {
+      expect(status.calledOnceWith(200)).to.be.true;
+      expect(json.calledOnceWith({ access_token: "token", token_type: "Bearer" })).to.be.true;
+      expect(nextSpy.notCalled).to.be.true;
+
+      projectServicePrototypeMock.verify();
+      requestServicePrototypeMock.verify();
+
+      return true;
+    });
+  });
 });
