@@ -45,7 +45,7 @@ export class RequestService {
   async token(request: RequestModel): Promise<RequestModel> {
     const token = randomBytes(64).toString("hex");
 
-    const result = await request.update("token", token);
+    const result = await request.update({ token });
 
     this._logger.info(result.toJSON(), "Updated request");
 

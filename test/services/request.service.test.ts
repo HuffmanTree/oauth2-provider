@@ -66,7 +66,7 @@ describe("RequestService", () => {
     requestModelPrototypeMock
       .expects("update")
       .once()
-      .withArgs("token", sinon.match(/^[0-9a-f]+$/))
+      .withArgs({ token: sinon.match(/^[0-9a-f]+$/) })
       .returns(mockRequest);
 
     const result = service.token(mockRequest);
