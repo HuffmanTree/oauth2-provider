@@ -63,5 +63,60 @@ export class OAuth2Router {
         controller.authorize.bind(controller)
       );
     }
+
+    {
+      const bodySchema: JSONSchemaType<{
+        client_id: string,
+        client_secret: string,
+        code: string,
+        grant_type: string,
+        redirect_uri: string
+      }> = {
+        type: "object",
+        properties: {
+          client_id: {
+            type: "string",
+            minLength: 1,
+          },
+          client_secret: {
+            type: "string",
+            minLength: 1,
+          },
+          code: {
+            type: "string",
+            minLength: 1,
+          },
+          grant_type: {
+            type: "string",
+            enum: ["authorization_code"],
+          },
+          redirect_uri: {
+            type: "string",
+            minLength: 1,
+            format: "uri",
+          },
+        },
+        required: ["client_id", "client_secret", "code", "grant_type", "redirect_uri"],
+      };
+
+      // Token
+      this.router.post(
+        "/token",
+        middleware
+          .validateRequest<
+          {
+            client_id: string,
+            client_secret: string,
+            code: string,
+            grant_type: string,
+            redirect_uri: string
+          },
+        unknown,
+        unknown
+          >({ bodySchema })
+          .bind(middleware),
+        controller.token.bind(controller)
+      );
+    }
   }
 }

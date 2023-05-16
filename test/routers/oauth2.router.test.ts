@@ -11,6 +11,7 @@ describe("OAuth2Router", () => {
   before(() => {
     const controller = {
       authorize: () => null,
+      token: () => null,
     } as unknown as OAuth2Controller;
     const middleware = {
       validateRequest: () => () => null,
@@ -25,6 +26,7 @@ describe("OAuth2Router", () => {
     "ensures ${value[0]} ${value[1]} is present",
     [
       ["GET", "/authorize"],
+      ["POST", "/token"],
     ],
     ([method, path]) => {
       const route = router.router.stack.find((s) => {
