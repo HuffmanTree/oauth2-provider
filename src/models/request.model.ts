@@ -1,4 +1,3 @@
-import bcrypt from "bcrypt";
 import {
   CreationOptional,
   DataTypes,
@@ -63,9 +62,9 @@ export class RequestModel extends Model<
   declare code: string;
 
   /**
-   * @description Hashed access token of the request
+   * @description Temporary access token of the request
    *
-   * @example "$2a$04$xJpe5CHncltnJsWIflNoGuFjeioy2ge35Mp6HycUoHa09/6EF6beO"
+   * @example "664ef0edf28c5d945aabb05403912734f3de841aa35ee09f76749c7ac67faac4f8806478afc143e4817f2a1c3fc7a92b84781e8e429f1d83f9643a6db92020d7"
    */
   declare token: string | null;
 
@@ -148,12 +147,9 @@ export class RequestModel extends Model<
           unique: "project_code",
         },
         token: {
-          comment: "Hashed access token of the request",
+          comment: "Temporary access token of the request",
           type: DataTypes.STRING,
           allowNull: true,
-          set(value?: string): void {
-            if (value) this.setDataValue("token", bcrypt.hashSync(value, 10));
-          },
         },
         expiredAt: {
           comment: "Request access token expiration date",

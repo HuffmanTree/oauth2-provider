@@ -60,6 +60,7 @@ describe("RequestService", () => {
       clientId: faker.datatype.uuid(),
       scope: faker.datatype.array().map((i) => i.toString()),
       code: faker.datatype.hexaDecimal(16).substring(2).toLowerCase(),
+      token: faker.datatype.hexaDecimal(128).substring(2).toLowerCase(),
     });
 
     requestModelPrototypeMock

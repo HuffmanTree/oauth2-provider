@@ -49,11 +49,6 @@ export class RequestService {
 
     this._logger.info(result.toJSON(), "Updated request");
 
-    /**
-     * We need the request token to be displayed after update
-     */
-    result.setDataValue("token", token);
-
     return result;
   }
 }
