@@ -36,7 +36,8 @@ export class AuthMiddleware {
     switch (scheme) {
       case "Bearer": {
         try {
-          res.locals.user = await this._service.verify(token);
+          if (req.baseUrl.endsWith("/oauth2")) res.locals.access = token;
+          else res.locals.user = await this._service.verify(token);
 
           return next();
         } catch (err) {

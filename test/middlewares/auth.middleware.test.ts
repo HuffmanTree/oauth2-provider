@@ -42,7 +42,7 @@ describe("AuthMiddleware", () => {
   it("authenticates a client", () => {
     const token = faker.datatype.hexaDecimal();
     const authorization = `Bearer ${token}`;
-    const req = { headers: { authorization } };
+    const req = { headers: { authorization }, baseUrl: "/api/users" };
     const res = {
       status(n: number) {
         void n;
@@ -141,7 +141,7 @@ describe("AuthMiddleware", () => {
   it("fails to authenticate with an invalid verification", () => {
     const token = faker.datatype.hexaDecimal();
     const authorization = `Bearer ${token}`;
-    const req = { headers: { authorization } };
+    const req = { headers: { authorization }, baseUrl: "/api/users" };
     const res = {
       status(n: number) {
         void n;
