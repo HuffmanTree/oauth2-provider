@@ -118,5 +118,13 @@ export class OAuth2Router {
         controller.token.bind(controller)
       );
     }
+
+    {
+      // UserInfo
+      this.router.get(
+        "/userinfo",
+        controller.info.bind(controller)
+      );
+    }
   }
 }

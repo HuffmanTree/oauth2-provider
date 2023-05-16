@@ -12,6 +12,7 @@ describe("OAuth2Router", () => {
     const controller = {
       authorize: () => null,
       token: () => null,
+      info: () => null,
     } as unknown as OAuth2Controller;
     const middleware = {
       validateRequest: () => () => null,
@@ -27,6 +28,7 @@ describe("OAuth2Router", () => {
     [
       ["GET", "/authorize"],
       ["POST", "/token"],
+      ["GET", "/userinfo"],
     ],
     ([method, path]) => {
       const route = router.router.stack.find((s) => {

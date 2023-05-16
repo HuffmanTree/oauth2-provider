@@ -135,4 +135,19 @@ export class OAuth2Controller {
       next(err);
     }
   }
+
+  async info(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const id = "user_id";
+      const json = { id };
+
+      res.status(200).json(json);
+    } catch (err) {
+      next(err);
+    }
+  }
 }
