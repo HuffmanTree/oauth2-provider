@@ -110,10 +110,10 @@ describe("RequestService", () => {
     requestModelMock
       .expects("findOne")
       .once()
-      .withArgs(sinon.match({ where: { clientId, token } }))
+      .withArgs(sinon.match({ where: { token } }))
       .returns(mockRequest);
 
-    const result = service.findByClientIdAndToken({ clientId, token });
+    const result = service.findByToken({ token });
 
     requestModelMock.verify();
 
