@@ -1,6 +1,6 @@
-import itParam from "mocha-param";
 import { expect } from "chai";
 import faker from "faker";
+import itParam from "mocha-param";
 import sinon from "sinon";
 import winston from "winston";
 import { Logger } from "../../src/logger";

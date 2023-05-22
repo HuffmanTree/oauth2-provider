@@ -1,14 +1,14 @@
-import { OAuth2DatabaseClient } from "../../src/models";
-import { RequestService } from "../../src/services/request.service";
-import { OAuth2Controller } from "../../src/controllers/oauth2.controller";
-import sinon from "sinon";
 import chai, { expect } from "chai";
-import faker from "faker";
 import chaiAsPromised from "chai-as-promised";
+import faker from "faker";
+import { EmptyResultError } from "sequelize";
+import sinon from "sinon";
+import { OAuth2Controller } from "../../src/controllers/oauth2.controller";
+import { OAuth2DatabaseClient } from "../../src/models";
+import { ProjectModel } from "../../src/models/project.model";
 import { RequestModel } from "../../src/models/request.model";
 import { ProjectService } from "../../src/services/project.service";
-import { ProjectModel } from "../../src/models/project.model";
-import { EmptyResultError } from "sequelize";
+import { RequestService } from "../../src/services/request.service";
 
 chai.use(chaiAsPromised);
 

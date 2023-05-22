@@ -1,6 +1,6 @@
+import fs from "fs";
 import { expect } from "chai";
 import faker from "faker";
-import fs from "fs";
 import sinon from "sinon";
 import { AuthMiddleware } from "../../src/middlewares/auth.middleware";
 import { AuthService } from "../../src/services/auth.service";

@@ -1,8 +1,8 @@
+import { JSONSchemaType } from "ajv";
 import { Router } from "express";
 import { OAuth2Controller } from "../controllers/oauth2.controller";
-import { ValidationMiddleware } from "../middlewares/validation.middleware";
 import { AuthMiddleware } from "../middlewares/auth.middleware";
-import { JSONSchemaType } from "ajv";
+import { ValidationMiddleware } from "../middlewares/validation.middleware";
 
 export class OAuth2Router {
   readonly router: Router;

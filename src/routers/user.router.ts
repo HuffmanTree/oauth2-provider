@@ -1,9 +1,9 @@
-import { Request, Response, Router } from "express";
-import { ValidationMiddleware } from "../middlewares/validation.middleware";
-import { UserController } from "../controllers/user.controller";
 import { JSONSchemaType } from "ajv";
+import { Request, Response, Router } from "express";
+import { UserController } from "../controllers/user.controller";
 import { AuthMiddleware } from "../middlewares/auth.middleware";
 import { PermissionMiddleware } from "../middlewares/permission.middleware";
+import { ValidationMiddleware } from "../middlewares/validation.middleware";
 
 export class UserRouter {
   readonly router: Router;

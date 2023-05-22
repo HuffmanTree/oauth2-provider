@@ -1,14 +1,14 @@
 import fs from "fs";
-import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
+import chai, { expect } from "chai";
+import chaiArrays from "chai-arrays";
+import chaiDatetime from "chai-datetime";
 import faker from "faker";
+import jwt from "jsonwebtoken";
 import { Sequelize } from "sequelize";
 import request from "supertest";
 import { OAuth2Server } from "../src/server";
 import "dotenv/config";
-import chai, { expect } from "chai";
-import chaiDatetime from "chai-datetime";
-import chaiArrays from "chai-arrays";
 
 chai.use(chaiDatetime);
 chai.use(chaiArrays);

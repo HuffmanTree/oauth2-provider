@@ -1,13 +1,13 @@
 import fs from "fs";
-import sinon from "sinon";
 import { expect } from "chai";
 import faker from "faker";
-import { OAuth2DatabaseClient } from "../../src/models";
-import { UserService } from "../../src/services/user.service";
-import { AuthService } from "../../src/services/auth.service";
-import { AuthController } from "../../src/controllers/auth.controller";
-import { UserModel } from "../../src/models/user.model";
 import { EmptyResultError } from "sequelize";
+import sinon from "sinon";
+import { AuthController } from "../../src/controllers/auth.controller";
+import { OAuth2DatabaseClient } from "../../src/models";
+import { UserModel } from "../../src/models/user.model";
+import { AuthService } from "../../src/services/auth.service";
+import { UserService } from "../../src/services/user.service";
 
 describe("AuthController", () => {
   const { user: model } = new OAuth2DatabaseClient({});

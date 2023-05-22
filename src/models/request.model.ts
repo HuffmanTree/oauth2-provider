@@ -7,8 +7,8 @@ import {
   Model,
   Sequelize,
 } from "sequelize";
-import { UserModel } from "./user.model";
 import { ProjectModel } from "./project.model";
+import { UserModel } from "./user.model";
 
 /**
  * @description Programmatic interface with the database request model

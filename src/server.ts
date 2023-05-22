@@ -1,8 +1,8 @@
+import { Server } from "http";
+import path from "path";
 import bodyParser from "body-parser";
 import cors from "cors";
 import express, { Express } from "express";
-import { Server } from "http";
-import path from "path";
 import { AuthController } from "./controllers/auth.controller";
 import { OAuth2Controller } from "./controllers/oauth2.controller";
 import { ProjectController } from "./controllers/project.controller";

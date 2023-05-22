@@ -1,7 +1,7 @@
-import { UserModel } from "../../src/models/user.model";
-import { Sequelize } from "sequelize";
 import { expect } from "chai";
 import itParam from "mocha-param";
+import { Sequelize } from "sequelize";
+import { UserModel } from "../../src/models/user.model";
 
 describe("UserModel", () => {
   const sequelize = new Sequelize({

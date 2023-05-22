@@ -1,11 +1,11 @@
-import faker from "faker";
 import { expect } from "chai";
+import faker from "faker";
 import itParam from "mocha-param";
 import { UserController } from "../../src/controllers/user.controller";
-import { UserRouter } from "../../src/routers/user.router";
-import { ValidationMiddleware } from "../../src/middlewares/validation.middleware";
 import { AuthMiddleware } from "../../src/middlewares/auth.middleware";
 import { PermissionMiddleware } from "../../src/middlewares/permission.middleware";
+import { ValidationMiddleware } from "../../src/middlewares/validation.middleware";
+import { UserRouter } from "../../src/routers/user.router";
 
 describe("UserRouter", () => {
   let router: UserRouter;

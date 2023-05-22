@@ -1,9 +1,9 @@
 import { expect } from "chai";
 import itParam from "mocha-param";
 import { ProjectController } from "../../src/controllers/project.controller";
-import { ProjectRouter } from "../../src/routers/project.router";
-import { ValidationMiddleware } from "../../src/middlewares/validation.middleware";
 import { AuthMiddleware } from "../../src/middlewares/auth.middleware";
+import { ValidationMiddleware } from "../../src/middlewares/validation.middleware";
+import { ProjectRouter } from "../../src/routers/project.router";
 
 describe("ProjectRouter", () => {
   let router: ProjectRouter;

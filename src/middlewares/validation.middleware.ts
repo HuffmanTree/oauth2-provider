@@ -1,9 +1,9 @@
-import { ValidationService } from "../services/validation.service";
-import { Logger } from "../logger";
 import { JSONSchemaType } from "ajv";
 import { NextFunction, Request, Response } from "express";
-import { BadRequest } from "./error.middleware";
+import { Logger } from "../logger";
+import { ValidationService } from "../services/validation.service";
 import { unknownToError } from "../utils";
+import { BadRequest } from "./error.middleware";
 
 export class ValidationMiddleware {
   private _service: ValidationService;

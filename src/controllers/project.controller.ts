@@ -5,9 +5,9 @@ import {
   UniqueConstraintError,
 } from "sequelize";
 import { Logger } from "../logger";
+import { Conflict, NotFound } from "../middlewares/error.middleware";
 import { ProjectModel } from "../models/project.model";
 import { ProjectService } from "../services/project.service";
-import { Conflict, NotFound } from "../middlewares/error.middleware";
 
 type CreateRequestBody = Omit<
   InferAttributes<ProjectModel>,

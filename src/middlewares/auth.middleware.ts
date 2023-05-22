@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
-import { unknownToError } from "../utils";
 import { Logger } from "../logger";
 import { AuthService } from "../services/auth.service";
+import { unknownToError } from "../utils";
 import { Unauthorized } from "./error.middleware";
 
 export class AuthMiddleware {

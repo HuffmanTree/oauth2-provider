@@ -2,10 +2,10 @@ import fs from "fs";
 import chai, { expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 import faker from "faker";
+import jwt from "jsonwebtoken";
 import sinon from "sinon";
 import { UserModel } from "../../src/models/user.model";
 import { AuthService } from "../../src/services/auth.service";
-import jwt from "jsonwebtoken";
 
 chai.use(chaiAsPromised);
 

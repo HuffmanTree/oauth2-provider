@@ -1,9 +1,9 @@
+import Ajv from "ajv";
 import chai, { expect } from "chai";
+import chaiAsPromised from "chai-as-promised";
 import faker from "faker";
 import sinon from "sinon";
-import chaiAsPromised from "chai-as-promised";
 import { ValidationService } from "../../src/services/validation.service";
-import Ajv from "ajv";
 
 chai.use(chaiAsPromised);
 

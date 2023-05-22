@@ -1,9 +1,9 @@
 import { NextFunction, Request, Response } from "express";
-import { AuthService } from "../services/auth.service";
-import { Logger } from "../logger";
-import { UserService } from "../services/user.service";
 import { EmptyResultError } from "sequelize";
+import { Logger } from "../logger";
 import { Unauthorized } from "../middlewares/error.middleware";
+import { AuthService } from "../services/auth.service";
+import { UserService } from "../services/user.service";
 
 type LoginRequestBody = { email: string; password: string };
 

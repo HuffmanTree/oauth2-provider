@@ -1,7 +1,7 @@
-import { ProjectModel } from "../../src/models/project.model";
-import { Sequelize } from "sequelize";
 import { expect } from "chai";
 import itParam from "mocha-param";
+import { Sequelize } from "sequelize";
+import { ProjectModel } from "../../src/models/project.model";
 
 describe("ProjectModel", () => {
   const sequelize = new Sequelize({

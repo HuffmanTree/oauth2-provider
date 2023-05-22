@@ -1,12 +1,12 @@
-import { OAuth2DatabaseClient } from "../../src/models";
-import { ProjectService } from "../../src/services/project.service";
-import { ProjectController } from "../../src/controllers/project.controller";
-import sinon from "sinon";
 import chai, { expect } from "chai";
-import faker from "faker";
-import { ProjectModel } from "../../src/models/project.model";
 import chaiAsPromised from "chai-as-promised";
+import faker from "faker";
 import { EmptyResultError, UniqueConstraintError } from "sequelize";
+import sinon from "sinon";
+import { ProjectController } from "../../src/controllers/project.controller";
+import { OAuth2DatabaseClient } from "../../src/models";
+import { ProjectModel } from "../../src/models/project.model";
+import { ProjectService } from "../../src/services/project.service";
 
 chai.use(chaiAsPromised);
 

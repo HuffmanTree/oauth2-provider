@@ -1,9 +1,9 @@
 import { expect } from "chai";
 import itParam from "mocha-param";
 import { OAuth2Controller } from "../../src/controllers/oauth2.controller";
-import { OAuth2Router } from "../../src/routers/oauth2.router";
-import { ValidationMiddleware } from "../../src/middlewares/validation.middleware";
 import { AuthMiddleware } from "../../src/middlewares/auth.middleware";
+import { ValidationMiddleware } from "../../src/middlewares/validation.middleware";
+import { OAuth2Router } from "../../src/routers/oauth2.router";
 
 describe("OAuth2Router", () => {
   let router: OAuth2Router;

@@ -1,6 +1,6 @@
-import { Logger } from "../logger";
 import Ajv, { JSONSchemaType } from "ajv";
 import addFormat from "ajv-formats";
+import { Logger } from "../logger";
 
 export class ValidationService {
   private _logger: Logger;

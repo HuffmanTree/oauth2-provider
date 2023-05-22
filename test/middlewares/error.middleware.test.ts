@@ -1,3 +1,6 @@
+import { expect } from "chai";
+import faker from "faker";
+import itParam from "mocha-param";
 import sinon from "sinon";
 import {
   BadRequest,
@@ -8,9 +11,6 @@ import {
   ErrorMiddleware,
   Conflict,
 } from "../../src/middlewares/error.middleware";
-import faker from "faker";
-import itParam from "mocha-param";
-import { expect } from "chai";
 
 describe("Error classes", () => {
   itParam<

@@ -1,7 +1,7 @@
+import { randomBytes } from "crypto";
 import { EmptyResultError } from "sequelize";
 import { Logger } from "../logger";
 import { ProjectModel } from "../models/project.model";
-import { randomBytes } from "crypto";
 
 export class ProjectService {
   private _logger: Logger;

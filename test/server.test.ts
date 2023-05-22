@@ -1,8 +1,8 @@
-import sinon from "sinon";
-import { OAuth2Server } from "../src/server";
 import chai, { expect } from "chai";
-import { OAuth2DatabaseClient } from "../src/models";
 import chaiAsPromised from "chai-as-promised";
+import sinon from "sinon";
+import { OAuth2DatabaseClient } from "../src/models";
+import { OAuth2Server } from "../src/server";
 
 chai.use(chaiAsPromised);
 

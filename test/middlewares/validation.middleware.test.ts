@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import faker from "faker";
-import sinon from "sinon";
 import itParam from "mocha-param";
+import sinon from "sinon";
 import { ValidationMiddleware } from "../../src/middlewares/validation.middleware";
 import { ValidationService } from "../../src/services/validation.service";
 

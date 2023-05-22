@@ -1,8 +1,8 @@
 import { JSONSchemaType } from "ajv";
 import { Router } from "express";
-import { ValidationMiddleware } from "../middlewares/validation.middleware";
 import { ProjectController } from "../controllers/project.controller";
 import { AuthMiddleware } from "../middlewares/auth.middleware";
+import { ValidationMiddleware } from "../middlewares/validation.middleware";
 
 export class ProjectRouter {
   readonly router: Router;

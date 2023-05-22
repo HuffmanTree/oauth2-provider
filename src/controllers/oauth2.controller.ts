@@ -1,9 +1,9 @@
 import { NextFunction, Request, Response } from "express";
-import { ProjectService } from "../services/project.service";
-import { Logger } from "../logger";
-import { RequestService } from "../services/request.service";
 import { EmptyResultError } from "sequelize";
+import { Logger } from "../logger";
 import { Forbidden } from "../middlewares/error.middleware";
+import { ProjectService } from "../services/project.service";
+import { RequestService } from "../services/request.service";
 import { UserService } from "../services/user.service";
 
 type AuthorizeRequestQuery = {
