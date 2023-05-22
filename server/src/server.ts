@@ -1,5 +1,4 @@
 import { Server } from "http";
-import path from "path";
 import bodyParser from "body-parser";
 import cors from "cors";
 import express, { Express } from "express";
@@ -48,7 +47,6 @@ export class OAuth2Server {
     this.app.use(bodyParser.urlencoded({ extended: true }));
     this.app.use(bodyParser.json());
     this.app.use(cors());
-    this.app.use("/static", express.static(path.join(process.cwd(), "static")));
 
     this.host = host || process.env.EXPRESS_HOST || "localhost";
 
