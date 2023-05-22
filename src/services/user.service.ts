@@ -53,7 +53,7 @@ export class UserService {
       name: string;
       email: string;
       password: string;
-    }>
+    }>,
   ): Promise<UserModel> {
     const result = await user.update(payload);
 

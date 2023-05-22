@@ -31,7 +31,7 @@ export class ValidationMiddleware {
     async function callback(
       req: Request<ParamsType, unknown, BodyType, QueryType>,
       _res: Response,
-      next: NextFunction
+      next: NextFunction,
     ): Promise<void> {
       const p: Array<Promise<BodyType | QueryType | ParamsType>> = [];
 

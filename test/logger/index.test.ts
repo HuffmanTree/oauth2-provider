@@ -83,6 +83,6 @@ describe("Logger", () => {
 
       childSpy.restore();
       levelSpy.restore();
-    }
+    },
   );
 });

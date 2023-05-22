@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { ValidationMiddleware } from "src/middlewares/validation.middleware";
+import { ValidationMiddleware } from "../middlewares/validation.middleware";
 import { AuthController } from "../controllers/auth.controller";
 import { JSONSchemaType } from "ajv";
 
@@ -36,7 +36,7 @@ export class AuthRouter {
             unknown
           >({ bodySchema })
           .bind(middleware),
-        controller.login.bind(controller)
+        controller.login.bind(controller),
       );
     }
   }

@@ -167,7 +167,7 @@ export class ProjectModel extends Model<
       {
         sequelize,
         modelName: "project",
-      }
+      },
     );
   }
 }

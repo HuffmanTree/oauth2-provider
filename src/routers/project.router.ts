@@ -1,6 +1,6 @@
 import { JSONSchemaType } from "ajv";
 import { Router } from "express";
-import { ValidationMiddleware } from "src/middlewares/validation.middleware";
+import { ValidationMiddleware } from "../middlewares/validation.middleware";
 import { ProjectController } from "../controllers/project.controller";
 import { AuthMiddleware } from "../middlewares/auth.middleware";
 
@@ -10,7 +10,7 @@ export class ProjectRouter {
   constructor(
     controller: ProjectController,
     middleware: ValidationMiddleware,
-    authMiddleware: AuthMiddleware
+    authMiddleware: AuthMiddleware,
   ) {
     this.router = Router();
 
@@ -54,7 +54,7 @@ export class ProjectRouter {
             unknown
           >({ bodySchema })
           .bind(middleware),
-        controller.create.bind(controller)
+        controller.create.bind(controller),
       );
     }
 
@@ -62,7 +62,7 @@ export class ProjectRouter {
       // GetProject
       this.router.get(
         "/:id([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})",
-        controller.find.bind(controller)
+        controller.find.bind(controller),
       );
     }
   }

@@ -27,6 +27,6 @@ describe("AuthRouter", () => {
       });
 
       expect(route).to.not.be.undefined;
-    }
+    },
   );
 });

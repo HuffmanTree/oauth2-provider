@@ -35,6 +35,6 @@ describe("PermissionMiddleware", () => {
       const result = middleware.permitRequest(f)(req, res, next);
 
       return expect(result).to.eventually.be.undefined;
-    }
+    },
   );
 });

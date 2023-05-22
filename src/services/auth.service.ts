@@ -77,7 +77,7 @@ export class AuthService {
     if (typeof payload === "string") {
       this._logger.warn(
         { payload },
-        "Not expecting JWT payload to be a string"
+        "Not expecting JWT payload to be a string",
       );
 
       return payload;

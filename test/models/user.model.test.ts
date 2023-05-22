@@ -36,6 +36,6 @@ describe("UserModel", () => {
       });
 
       expect(user.verifyPassword(inputPassword)).to.equal(expectedValidated);
-    }
+    },
   );
 });

@@ -23,7 +23,7 @@ describe("Utils", () => {
           .and.to.have.property("message")
           .and.to.be.a("string")
           .and.to.equal(expectedErrorMessage);
-      }
+      },
     );
   });
 });

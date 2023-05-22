@@ -1,5 +1,5 @@
 import { Request, Response, Router } from "express";
-import { ValidationMiddleware } from "src/middlewares/validation.middleware";
+import { ValidationMiddleware } from "../middlewares/validation.middleware";
 import { UserController } from "../controllers/user.controller";
 import { JSONSchemaType } from "ajv";
 import { AuthMiddleware } from "../middlewares/auth.middleware";
@@ -12,7 +12,7 @@ export class UserRouter {
     controller: UserController,
     middleware: ValidationMiddleware,
     authMiddleware: AuthMiddleware,
-    permissionMiddleware: PermissionMiddleware
+    permissionMiddleware: PermissionMiddleware,
   ) {
     this.router = Router();
 
@@ -51,7 +51,7 @@ export class UserRouter {
             unknown
           >({ bodySchema })
           .bind(middleware),
-        controller.create.bind(controller)
+        controller.create.bind(controller),
       );
     }
 
@@ -59,7 +59,7 @@ export class UserRouter {
       // GetUser
       this.router.get(
         "/:id([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})",
-        controller.find.bind(controller)
+        controller.find.bind(controller),
       );
     }
 
@@ -106,7 +106,7 @@ export class UserRouter {
             unknown
           >({ bodySchema })
           .bind(middleware),
-        controller.update.bind(controller)
+        controller.update.bind(controller),
       );
     }
 
@@ -118,7 +118,7 @@ export class UserRouter {
         permissionMiddleware
           .permitRequest(UserRouter.isCurrentUserTargetted)
           .bind(permissionMiddleware),
-        controller.destroy.bind(controller)
+        controller.destroy.bind(controller),
       );
     }
   }

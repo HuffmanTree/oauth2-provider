@@ -65,7 +65,7 @@ describe("AuthService", () => {
           name: mockUser.name,
         },
         Buffer.from("secret"),
-        undefined
+        undefined,
       )
       .returns("jwt");
 

@@ -18,7 +18,7 @@ export class AuthMiddleware {
   async authenticate(
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
   ): Promise<void> {
     const original = new Error("Check 'WWW-Authenticate' header");
     const authorization = req.headers.authorization;
@@ -45,7 +45,7 @@ export class AuthMiddleware {
 
           res.setHeader(
             "WWW-Authenticate",
-            `Bearer invalid_token: ${unknownToError(err).message}`
+            `Bearer invalid_token: ${unknownToError(err).message}`,
           );
 
           return next(new Unauthorized(original));

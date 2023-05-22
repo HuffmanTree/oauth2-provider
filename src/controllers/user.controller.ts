@@ -72,7 +72,7 @@ export class UserController {
   async create(
     req: Request<Record<string, string>, CreateResponseBody, CreateRequestBody>,
     res: Response<CreateResponseBody>,
-    next: NextFunction
+    next: NextFunction,
   ): Promise<void> {
     try {
       const { email, name, password } = req.body;
@@ -102,7 +102,7 @@ export class UserController {
   async find(
     req: Request<FindParams, FindResponseBody>,
     res: Response<FindResponseBody>,
-    next: NextFunction
+    next: NextFunction,
   ): Promise<void> {
     try {
       const { id } = req.params;
@@ -127,7 +127,7 @@ export class UserController {
   async update(
     req: Request<UpdateParams, UpdateResponseBody, UpdateRequestBody>,
     res: Response<UpdateResponseBody>,
-    next: NextFunction
+    next: NextFunction,
   ): Promise<void> {
     try {
       const { id } = req.params;
@@ -164,7 +164,7 @@ export class UserController {
   async destroy(
     req: Request<DestroyParams, DestroyResponseBody>,
     res: Response<DestroyResponseBody>,
-    next: NextFunction
+    next: NextFunction,
   ): Promise<void> {
     try {
       const { id } = req.params;

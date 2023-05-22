@@ -22,7 +22,7 @@ export class ValidationService {
 
       this._logger.warn(
         { data, schema, errors },
-        "Data not valid against JSON schema"
+        "Data not valid against JSON schema",
       );
 
       throw new Error(this._ajv.errorsText(errors));

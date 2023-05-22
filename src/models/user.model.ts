@@ -132,7 +132,7 @@ export class UserModel extends Model<
       {
         sequelize,
         modelName: "user",
-      }
+      },
     );
   }
 }

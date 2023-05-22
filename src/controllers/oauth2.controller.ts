@@ -4,7 +4,7 @@ import { Logger } from "../logger";
 import { RequestService } from "../services/request.service";
 import { EmptyResultError } from "sequelize";
 import { Forbidden } from "../middlewares/error.middleware";
-import { UserService } from "src/services/user.service";
+import { UserService } from "../services/user.service";
 
 type AuthorizeRequestQuery = {
   client_id: string,
@@ -38,7 +38,7 @@ export class OAuth2Controller {
   constructor(
     projectService: ProjectService,
     requestService: RequestService,
-    userService: UserService
+    userService: UserService,
   ) {
     this._projectService = projectService;
 
@@ -67,7 +67,7 @@ export class OAuth2Controller {
   async authorize(
     req: Request<Record<string, string>, Record<string, string>, Record<string, string>, AuthorizeRequestQuery>,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
   ): Promise<void> {
     try {
       const { client_id: clientId, redirect_uri } = req.query;
@@ -84,7 +84,7 @@ export class OAuth2Controller {
 
       this._logger.info(
         { resourceOwner, clientId, scope },
-        "Create operation payload"
+        "Create operation payload",
       );
 
       const result = await this._requestService.create({
@@ -110,7 +110,7 @@ export class OAuth2Controller {
   async token(
     req: Request<Record<string, string>, TokenResponseBody, TokenRequestBody>,
     res: Response<TokenResponseBody>,
-    next: NextFunction
+    next: NextFunction,
   ): Promise<void> {
     try {
       const { client_id: clientId, client_secret: clientSecret, code } = req.body;
@@ -148,7 +148,7 @@ export class OAuth2Controller {
   async info(
     req: Request<Record<string, string>, Record<string, string>>,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
   ): Promise<void> {
     try {
       const token = res.locals.access;

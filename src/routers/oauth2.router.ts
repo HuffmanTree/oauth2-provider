@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { OAuth2Controller } from "../controllers/oauth2.controller";
-import { ValidationMiddleware } from "src/middlewares/validation.middleware";
+import { ValidationMiddleware } from "../middlewares/validation.middleware";
 import { AuthMiddleware } from "../middlewares/auth.middleware";
 import { JSONSchemaType } from "ajv";
 
@@ -10,7 +10,7 @@ export class OAuth2Router {
   constructor(
     controller: OAuth2Controller,
     middleware: ValidationMiddleware,
-    authMiddleware: AuthMiddleware
+    authMiddleware: AuthMiddleware,
   ) {
     this.router = Router();
 
@@ -60,7 +60,7 @@ export class OAuth2Router {
         unknown
           >({ querySchema })
           .bind(middleware),
-        controller.authorize.bind(controller)
+        controller.authorize.bind(controller),
       );
     }
 
@@ -115,7 +115,7 @@ export class OAuth2Router {
         unknown
           >({ bodySchema })
           .bind(middleware),
-        controller.token.bind(controller)
+        controller.token.bind(controller),
       );
     }
 
@@ -124,7 +124,7 @@ export class OAuth2Router {
       this.router.get(
         "/userinfo",
         authMiddleware.authenticate.bind(authMiddleware),
-        controller.info.bind(controller)
+        controller.info.bind(controller),
       );
     }
   }

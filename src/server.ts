@@ -105,19 +105,19 @@ export class OAuth2Server {
       userController,
       validationMiddleware,
       authMiddleware,
-      permissionMiddleware
+      permissionMiddleware,
     );
 
     const projectRouter = new ProjectRouter(
       projectController,
       validationMiddleware,
-      authMiddleware
+      authMiddleware,
     );
 
     const oauth2Router = new OAuth2Router(
       oauth2Controller,
       validationMiddleware,
-      authMiddleware
+      authMiddleware,
     );
 
 

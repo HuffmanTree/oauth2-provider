@@ -15,7 +15,7 @@ export class PermissionMiddleware {
     async function callback(
       req: Request,
       res: Response,
-      next: NextFunction
+      next: NextFunction,
     ): Promise<void> {
       if (permissionFunction(req, res)) return next();
 

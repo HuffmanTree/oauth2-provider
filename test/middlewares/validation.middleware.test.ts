@@ -69,7 +69,7 @@ describe("ValidationMiddleware", () => {
 
         return true;
       });
-    }
+    },
   );
 
   it("fails to validate a request", () => {

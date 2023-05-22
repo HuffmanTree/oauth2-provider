@@ -52,7 +52,7 @@ describe("Error classes", () => {
         .to.have.property("status")
         .and.to.be.a("number")
         .and.to.equal(expectedStatus);
-    }
+    },
   );
 });
 
@@ -112,7 +112,7 @@ describe("ErrorMiddleware", () => {
         message: "Missing property 'email'",
         status: 400,
         name: "BadRequest",
-      })
+      }),
     ).to.be.true;
 
     return expect(result).to.eventually.be.undefined;
@@ -146,7 +146,7 @@ describe("ErrorMiddleware", () => {
         message: "Uncaught error",
         status: 500,
         name: "InternalServerError",
-      })
+      }),
     ).to.be.true;
 
     return expect(result).to.eventually.be.undefined;
@@ -180,7 +180,7 @@ describe("ErrorMiddleware", () => {
         message: "Uncaught string",
         status: 500,
         name: "InternalServerError",
-      })
+      }),
     ).to.be.true;
 
     return expect(result).to.eventually.be.undefined;

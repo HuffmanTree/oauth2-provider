@@ -40,6 +40,6 @@ describe("ProjectRouter", () => {
       });
 
       expect(route).to.not.be.undefined;
-    }
+    },
   );
 });

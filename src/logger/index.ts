@@ -24,7 +24,7 @@ export class Logger {
     this._logger = winston.createLogger({
       format: winston.format.combine(
         winston.format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
-        winston.format.json()
+        winston.format.json(),
       ),
       transports: [new winston.transports.Console()],
       level: process.env.WINSTON_LEVEL || "info",

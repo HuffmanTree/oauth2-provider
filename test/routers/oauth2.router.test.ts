@@ -39,6 +39,6 @@ describe("OAuth2Router", () => {
       });
 
       expect(route).to.not.be.undefined;
-    }
+    },
   );
 });

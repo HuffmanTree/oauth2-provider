@@ -30,7 +30,7 @@ describe("UserRouter", () => {
       controller,
       middleware,
       authMiddleware,
-      permissionMiddleware
+      permissionMiddleware,
     );
   });
 
@@ -60,7 +60,7 @@ describe("UserRouter", () => {
       });
 
       expect(route).to.not.be.undefined;
-    }
+    },
   );
 
   describe("isCurrentUserTargetted", () => {

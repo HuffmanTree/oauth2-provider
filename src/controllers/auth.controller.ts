@@ -42,7 +42,7 @@ export class AuthController {
   async login(
     req: Request<Record<string, string>, LoginResponseBody, LoginRequestBody>,
     res: Response<LoginResponseBody>,
-    next: NextFunction
+    next: NextFunction,
   ): Promise<void> {
     try {
       const { email, password } = req.body;

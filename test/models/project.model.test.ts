@@ -36,7 +36,7 @@ describe("ProjectModel", () => {
       });
 
       expect(project.verifySecret(inputSecret)).to.equal(expectedValidated);
-    }
+    },
   );
 
   itParam(

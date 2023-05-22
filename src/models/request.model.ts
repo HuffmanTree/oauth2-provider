@@ -173,7 +173,7 @@ export class RequestModel extends Model<
       {
         sequelize,
         modelName: "request",
-      }
+      },
     );
   }
 }

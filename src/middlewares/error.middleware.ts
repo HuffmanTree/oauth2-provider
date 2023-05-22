@@ -56,7 +56,7 @@ export class ErrorMiddleware {
   async notFound(
     req: Request,
     _res: Response,
-    next: NextFunction
+    next: NextFunction,
   ): Promise<void> {
     const original = new Error(`Path not found: '${req.path}'`);
 
@@ -74,7 +74,7 @@ export class ErrorMiddleware {
      * may help removing the eslint rule exception.
      */
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    _next: NextFunction
+    _next: NextFunction,
   ): Promise<void> {
     this._logger.error({ err }, "Raw error");
 

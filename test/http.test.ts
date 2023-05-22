@@ -186,7 +186,7 @@ describe("HTTP API", () => {
               .to.be.an("object")
               .and.to.have.property("message")
               .and.to.be.a("string")
-              .and.to.equal(`Logged in as ${id}`)
+              .and.to.equal(`Logged in as ${id}`),
           )
           .end(done);
       });
@@ -404,7 +404,7 @@ describe("HTTP API", () => {
               "email",
               "name",
               "createdAt",
-              "updatedAt"
+              "updatedAt",
             );
             expect(res.body).to.not.have.key("password");
             expect(res.body.id).to.be.a("string");
@@ -765,7 +765,7 @@ describe("HTTP API", () => {
               "email",
               "name",
               "createdAt",
-              "updatedAt"
+              "updatedAt",
             );
             expect(res.body).to.not.have.key("password");
             expect(res.body.id).to.be.a("string").and.to.equal(id);
@@ -776,7 +776,7 @@ describe("HTTP API", () => {
               .and.to.equal(createdAt);
             expect(res.body.updatedAt).to.be.a("string");
             expect(new Date(res.body.updatedAt)).to.be.afterTime(
-              new Date(res.body.createdAt)
+              new Date(res.body.createdAt),
             );
 
             done();
@@ -1232,7 +1232,7 @@ describe("HTTP API", () => {
               "scope",
               "creator",
               "createdAt",
-              "updatedAt"
+              "updatedAt",
             );
             expect(res.body.id).to.be.a("string");
             expect(res.body.redirectURL)

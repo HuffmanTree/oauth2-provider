@@ -69,7 +69,7 @@ describe("ProjectController", () => {
 
     return expect(result).to.eventually.be.undefined.and.to.satisfy(() => {
       expect(
-        setHeader.calledOnceWith("Location", `/api/projects/${mockProject.id}`)
+        setHeader.calledOnceWith("Location", `/api/projects/${mockProject.id}`),
       ).to.be.true;
       expect(statusSpy.calledOnceWith(201)).to.be.true;
       expect(jsonSpy.calledOnceWith(project)).to.be.true;

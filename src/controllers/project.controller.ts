@@ -60,7 +60,7 @@ export class ProjectController {
   async create(
     req: Request<Record<string, string>, CreateResponseBody, CreateRequestBody>,
     res: Response<CreateResponseBody>,
-    next: NextFunction
+    next: NextFunction,
   ): Promise<void> {
     try {
       const { name, redirectURL, scope } = req.body;
@@ -68,7 +68,7 @@ export class ProjectController {
 
       this._logger.info(
         { name, redirectURL, scope, creator },
-        "Create operation payload"
+        "Create operation payload",
       );
 
       const result = await this._service.create({
@@ -99,7 +99,7 @@ export class ProjectController {
   async find(
     req: Request<FindParams, FindResponseBody>,
     res: Response<FindResponseBody>,
-    next: NextFunction
+    next: NextFunction,
   ): Promise<void> {
     try {
       const { id } = req.params;
