@@ -25,6 +25,7 @@
     "@types/pg": "^8.10.0",
     "http-server": "^14.1.1",
     "nodemon": "^2.0.19",
+    "sequelize-mock": "^0.10.2",
     "ts-node": "^10.9.1"
   },
   "dependencies": {
