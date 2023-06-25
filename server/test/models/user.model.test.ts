@@ -1,5 +1,4 @@
 import { expect } from "chai";
-import itParam from "mocha-param";
 import { Sequelize } from "sequelize";
 import { UserModel } from "../../src/models/user.model";
 
@@ -8,14 +7,15 @@ describe("UserModel", () => {
     dialect: "postgres",
   });
 
-  it("initializes the model", () => {
-    const result = UserModel.initialize(sequelize);
+  describe("initialize", () => {
+    it("initializes the model", () => {
+      const result = UserModel.initialize(sequelize);
 
-    expect(result).to.equal(UserModel);
+      expect(result).to.equal(UserModel);
+    });
   });
 
-  itParam(
-    "detects ${value.state} password",
+  describe("verifyPassword", () => {
     [
       {
         state: "a valid",
@@ -29,13 +29,11 @@ describe("UserModel", () => {
         inputPassword: "this_is_another_secret",
         expectedValidated: false,
       },
-    ],
-    ({ userPassword, inputPassword, expectedValidated }) => {
-      const user = new UserModel({
-        password: userPassword,
-      });
+    ].forEach(({ state, userPassword, inputPassword, expectedValidated }) =>
+      it(`detects ${state} password`, function () {
+        const user = new UserModel({ email: "", name: "", password: userPassword });
 
-      expect(user.verifyPassword(inputPassword)).to.equal(expectedValidated);
-    },
-  );
+        expect(user.verifyPassword(inputPassword)).to.equal(expectedValidated);
+      }));
+  });
 });
