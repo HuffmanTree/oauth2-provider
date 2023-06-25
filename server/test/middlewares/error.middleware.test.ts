@@ -1,7 +1,8 @@
+import { describe } from "node:test";
 import { expect } from "chai";
-import faker from "faker";
-import itParam from "mocha-param";
-import sinon from "sinon";
+import sinon, { match } from "sinon";
+import sinonTest from "sinon-test";
+import * as LoggerModule from "../../src/logger";
 import {
   BadRequest,
   Unauthorized,
@@ -11,178 +12,89 @@ import {
   ErrorMiddleware,
   Conflict,
 } from "../../src/middlewares/error.middleware";
+import * as utils from "../../src/utils";
+import { loggerMock, expressMock, errorMock } from "../helpers/mocks.helper";
+
+const test = sinonTest(sinon);
 
 describe("Error classes", () => {
-  itParam<
-    [
-    (
-        | typeof BadRequest
-        | typeof Unauthorized
-        | typeof Forbidden
-        | typeof NotFound
-        | typeof Conflict
-        | typeof InternalServerError
-    ),
-      number,
-      ]
-      >(
-      "Builds a ${value[0].name}",
-      [
-        [BadRequest, 400],
-        [Unauthorized, 401],
-        [Forbidden, 403],
-        [NotFound, 404],
-        [Conflict, 409],
-        [InternalServerError, 500],
-      ],
-      ([fn, expectedStatus]) => {
-        const message = faker.datatype.string();
-        const err = new fn(new Error(message));
+  [
+    { fn: BadRequest, expectedStatus: 400 },
+    { fn: Unauthorized, expectedStatus: 401 },
+    { fn: Forbidden, expectedStatus: 403 },
+    { fn: NotFound, expectedStatus: 404 },
+    { fn: Conflict, expectedStatus: 409 },
+    { fn: InternalServerError, expectedStatus: 500 },
+  ].forEach(({ fn, expectedStatus }) =>
+    it(`builds a ${fn.name}`, function () {
+      const err = new fn(new Error("error message"));
 
-        expect(err).to.be.instanceOf(fn);
-        expect(err)
-          .to.have.property("message")
-          .and.to.be.a("string")
-          .and.to.equal(message);
-        expect(err)
-          .to.have.property("name")
-          .and.to.be.a("string")
-          .and.to.equal(fn.name);
-        expect(err)
-          .to.have.property("status")
-          .and.to.be.a("number")
-          .and.to.equal(expectedStatus);
-      },
-      );
+      expect(err).to.be.instanceOf(fn);
+      expect(err)
+        .to.have.property("message")
+        .and.to.be.a("string")
+        .and.to.equal("error message");
+      expect(err)
+        .to.have.property("name")
+        .and.to.be.a("string")
+        .and.to.equal(fn.name);
+      expect(err)
+        .to.have.property("status")
+        .and.to.be.a("number")
+        .and.to.equal(expectedStatus);
+    }));
 });
 
 describe("ErrorMiddleware", () => {
   let middleware: ErrorMiddleware;
 
-  before(() => {
+  before(test(function () {
+    this.stub(LoggerModule, "Logger").callsFake(loggerMock);
     middleware = new ErrorMiddleware();
+  }));
+
+  describe("notFound", () => {
+    it("falls to notFound", test(async function () {
+      const express = expressMock();
+      const next = this.spy(express, "next");
+
+      await middleware.notFound(express.req, express.res, express.next);
+
+      expect(next.calledOnceWithExactly(match.instanceOf(NotFound))).to.be.true;
+    }));
   });
 
-  it("falls to notFound - need mock objects for better test", () => {
-    const req = {};
-    const res = {
-      status(n: number) {
-        void n;
-
-        return this;
+  describe("handleError", () => {
+    [
+      {
+        type: "an 'HttpError'",
+        err: new BadRequest(new Error("Missing property 'email'")),
+        expectedStatus: 400,
+        expectedJson: { message: "Missing property 'email'", status: 400, name: "BadRequest" },
       },
-      json(j: object) {
-        void j;
-
-        return this;
+      {
+        type: "an 'Error'",
+        err: new Error("Uncaught error"),
+        expectedStatus: 500,
+        expectedJson: { message: "Uncaught error", status: 500, name: "InternalServerError" },
       },
-    };
-    const next = () => undefined;
-
-    const result = middleware.notFound(req, res, next);
-
-    return expect(result).to.eventually.be.undefined;
-  });
-
-  it("falls to handleError with an 'HttpError' - need mock objects for better test", () => {
-    const message = "Missing property 'email'";
-    const err = new BadRequest(new Error(message));
-    const req = {};
-    const res = {
-      status(n: number) {
-        void n;
-
-        return this;
+      {
+        type: "a string",
+        err: "Uncaught string",
+        expectedStatus: 500,
+        expectedJson: { message: "Uncaught string", status: 500, name: "InternalServerError" },
       },
-      json(j: object) {
-        void j;
+    ].forEach(({ type, err, expectedStatus, expectedJson }) =>
+      it(`falls to handleError with ${type}`, test(async function () {
+        this.stub(utils, "unknownToError").callsFake(errorMock.unknownToError);
+        const express = expressMock();
+        const status = this.spy(express.res, "status");
+        const json = this.spy(express.res, "json");
 
-        return this;
-      },
-    };
-    const next = () => undefined;
-    const statusSpy = sinon.spy(res, "status");
-    const jsonSpy = sinon.spy(res, "json");
+        await middleware.handleError(err, express.req, express.res, express.next);
 
-    const result = middleware.handleError(err, req, res, next);
-
-    expect(statusSpy.calledOnceWith(400)).to.be.true;
-    expect(
-      jsonSpy.calledOnceWith({
-        message: "Missing property 'email'",
-        status: 400,
-        name: "BadRequest",
-      }),
-    ).to.be.true;
-
-    return expect(result).to.eventually.be.undefined;
-  });
-
-  it("falls to handleError with an 'Error' - need mock objects for better test", () => {
-    const message = "Uncaught error";
-    const err = new Error(message);
-    const req = {};
-    const res = {
-      status(n: number) {
-        void n;
-
-        return this;
-      },
-      json(j: object) {
-        void j;
-
-        return this;
-      },
-    };
-    const next = () => undefined;
-    const statusSpy = sinon.spy(res, "status");
-    const jsonSpy = sinon.spy(res, "json");
-
-    const result = middleware.handleError(err, req, res, next);
-
-    expect(statusSpy.calledOnceWith(500)).to.be.true;
-    expect(
-      jsonSpy.calledOnceWith({
-        message: "Uncaught error",
-        status: 500,
-        name: "InternalServerError",
-      }),
-    ).to.be.true;
-
-    return expect(result).to.eventually.be.undefined;
-  });
-
-  it("falls to handleError with a string - need mock objects for better test", () => {
-    const message = "Uncaught string";
-    const err = message;
-    const req = {};
-    const res = {
-      status(n: number) {
-        void n;
-
-        return this;
-      },
-      json(j: object) {
-        void j;
-
-        return this;
-      },
-    };
-    const next = () => undefined;
-    const statusSpy = sinon.spy(res, "status");
-    const jsonSpy = sinon.spy(res, "json");
-
-    const result = middleware.handleError(err, req, res, next);
-
-    expect(statusSpy.calledOnceWith(500)).to.be.true;
-    expect(
-      jsonSpy.calledOnceWith({
-        message: "Uncaught string",
-        status: 500,
-        name: "InternalServerError",
-      }),
-    ).to.be.true;
-
-    return expect(result).to.eventually.be.undefined;
+        expect(status.calledOnceWithExactly(expectedStatus)).to.be.true;
+        expect(json.calledOnceWithExactly(expectedJson)).to.be.true;
+      })));
   });
 });
