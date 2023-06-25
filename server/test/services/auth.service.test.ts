@@ -1,123 +1,65 @@
 import fs from "fs";
-import chai, { expect } from "chai";
-import chaiAsPromised from "chai-as-promised";
-import faker from "faker";
+import { expect } from "chai";
 import jwt from "jsonwebtoken";
 import sinon from "sinon";
-import { UserModel } from "../../src/models/user.model";
+import sinonTest from "sinon-test";
+import * as LoggerModule from "../../src/logger";
 import { AuthService } from "../../src/services/auth.service";
+import { loggerMock } from "../helpers/mocks.helper";
+import { fakeUserModel } from "../helpers/models.helper";
 
-chai.use(chaiAsPromised);
+const test = sinonTest(sinon);
 
 describe("AuthService", () => {
   let service: AuthService;
-  let userModelPrototypeMock: sinon.SinonMock;
-  let jwtMock: sinon.SinonMock;
 
-  before(() => {
-    const fsMock = sinon.mock(fs);
-
-    fsMock
-      .expects("readFileSync")
-      .once()
-      .withArgs("/tmp/test.key")
-      .returns(Buffer.from("secret"));
-    fsMock
-      .expects("readFileSync")
-      .once()
-      .withArgs("/tmp/test.key.pub")
-      .returns(Buffer.from("secret"));
-
+  before(test(function () {
+    this.stub(LoggerModule, "Logger").callsFake(loggerMock);
+    this.stub(fs, "readFileSync").callsFake();
     service = new AuthService();
+  }));
 
-    fsMock.verify();
-    fsMock.restore();
+  describe("login", () => {
+    it("logs a user in with a valid password", test(async function () {
+      const user = await fakeUserModel({ verifyPasswordReturnedValue: true }).findOne({ rejectOnEmpty: true });
+      const verifyPassword = this.spy(user, "verifyPassword");
+      const jwtMock = this.mock(jwt);
+      jwtMock.expects("sign").once().returns("jwt");
+
+      const result = await service.login(user, "secret");
+
+      expect(verifyPassword.calledOnceWithExactly("secret")).to.be.true;
+      expect(result).to.equal("jwt");
+    }));
+
+    it("fails to log user in with an invalid password", test(async function () {
+      const user = await fakeUserModel({ verifyPasswordReturnedValue: false }).findOne({ rejectOnEmpty: true });
+      const verifyPassword = this.spy(user, "verifyPassword");
+
+      const result = service.login(user, "secret");
+
+      expect(verifyPassword.calledOnceWithExactly("secret")).to.be.true;
+      await result.then(() => ({}), (err) => expect(err).to.be.instanceOf(Error));
+    }));
   });
 
-  beforeEach(() => {
-    userModelPrototypeMock = sinon.mock(UserModel.prototype);
-    jwtMock = sinon.mock(jwt);
-  });
+  describe("verify", () => {
+    it("verifies a token", test(async function () {
+      const jwtMock = this.mock(jwt);
+      jwtMock.expects("verify").once().returns({ id: "userId" });
 
-  afterEach(() => {
-    userModelPrototypeMock.restore();
-    jwtMock.restore();
-  });
+      const result = await service.verify("jwt");
 
-  it("logs a user in with a valid password", () => {
-    const email = faker.internet.email();
-    const password = faker.internet.password();
-    const name = faker.name.findName();
-    const mockUser = new UserModel({ email, password, name });
+      expect(result).to.equal("userId");
+    }));
 
-    userModelPrototypeMock
-      .expects("verifyPassword")
-      .once()
-      .withArgs(password)
-      .returns(true);
-    jwtMock
-      .expects("sign")
-      .once()
-      .withArgs(
-        {
-          id: mockUser.id,
-          email: mockUser.email,
-          name: mockUser.name,
-        },
-        Buffer.from("secret"),
-        undefined,
-      )
-      .returns("jwt");
+    it("verifies a token with a warning", test(async function () {
+      const jwtMock = this.mock(jwt);
+      jwtMock.expects("verify").once().returns("userId");
 
-    const result = service.login(mockUser, password);
+      const result = await service.verify("jwt");
 
-    return expect(result).to.be.eventually.a("string").and.to.equal("jwt");
-  });
-
-  it("fails to log user in with an invalid password", () => {
-    const email = faker.internet.email();
-    const password = faker.internet.password();
-    const inputPassword = faker.internet.password();
-    const mockUser = new UserModel({ email, password });
-
-    userModelPrototypeMock
-      .expects("verifyPassword")
-      .once()
-      .withArgs(inputPassword)
-      .returns(false);
-
-    const result = service.login(mockUser, inputPassword);
-
-    return expect(result).to.eventually.be.rejected;
-  });
-
-  it("verifies a token", () => {
-    const token = "jwt";
-    const id = faker.datatype.uuid();
-
-    jwtMock
-      .expects("verify")
-      .once()
-      .withArgs(token, Buffer.from("secret"), undefined)
-      .returns({ id });
-
-    const result = service.verify(token);
-
-    return expect(result).to.eventually.be.a("string").and.to.equal(id);
-  });
-
-  it("verifies a token with a warning", () => {
-    const token = "jwt";
-    const payload = faker.datatype.hexaDecimal();
-
-    jwtMock
-      .expects("verify")
-      .once()
-      .withArgs(token, Buffer.from("secret"), undefined)
-      .returns(payload);
-
-    const result = service.verify(token);
-
-    return expect(result).to.eventually.be.a("string").and.to.equal(payload);
+      expect(result).to.equal("userId");
+    }));
   });
 });

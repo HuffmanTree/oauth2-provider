@@ -1,73 +1,47 @@
-import chai, { expect } from "chai";
-import chaiAsPromised from "chai-as-promised";
-import faker from "faker";
-import sinon from "sinon";
-import { OAuth2DatabaseClient } from "../../src/models";
-import { ProjectModel } from "../../src/models/project.model";
+import { expect } from "chai";
+import { EmptyResultError } from "sequelize";
+import sinon, { match } from "sinon";
+import sinonTest from "sinon-test";
+import * as LoggerModule from "../../src/logger";
 import { ProjectService } from "../../src/services/project.service";
+import { loggerMock } from "../helpers/mocks.helper";
+import { fakeProjectModel } from "../helpers/models.helper";
 
-chai.use(chaiAsPromised);
+const test = sinonTest(sinon);
 
 describe("ProjectService", () => {
-  const { project: model } = new OAuth2DatabaseClient({});
-  const service = new ProjectService(model);
-  let projectModelMock: sinon.SinonMock;
-  let projectModelPrototypeMock: sinon.SinonMock;
+  let service: ProjectService;
+  const ProjectModel = fakeProjectModel();
 
-  beforeEach(() => {
-    projectModelMock = sinon.mock(ProjectModel);
-    projectModelPrototypeMock = sinon.mock(ProjectModel.prototype);
+  before(test(function () {
+    this.stub(LoggerModule, "Logger").callsFake(loggerMock);
+    service = new ProjectService(ProjectModel);
+  }));
+
+  describe("create", () => {
+    it("creates a project", test(async function () {
+      const create = this.spy(ProjectModel, "create");
+
+      const result = await service.create({ name: "My project", redirectURL: "http://domain.fr", scope: ["name", "email"], creator: "userId" });
+
+      expect(create.calledOnceWithExactly({ name: "My project", redirectURL: "http://domain.fr", scope: ["name", "email"], creator: "userId", secret: match.string })).to.be.true;
+      expect(result)
+        .to.include({ name: "My project", redirectURL: "http://domain.fr", creator: "userId" })
+        .and.to.have.property("secret")
+        .and.to.be.a("string")
+        .and.to.match(/^[0-9a-f]+$/)
+        .and.to.have.lengthOf(64);
+    }));
   });
 
-  afterEach(() => {
-    projectModelMock.restore();
-    projectModelPrototypeMock.restore();
-  });
+  describe("findById", () => {
+    it("finds a project from its id", test(async function () {
+      const findByPk = this.spy(ProjectModel, "findByPk");
 
-  it("creates a project", () => {
-    const payload = {
-      name: faker.name.findName(),
-      redirectURL: faker.internet.url(),
-      scope: faker.datatype.array().map((i) => i.toString()),
-      creator: faker.datatype.uuid(),
-    };
-    const mockProject = new ProjectModel(payload);
+      const result = await service.findById("id");
 
-    projectModelMock
-      .expects("create")
-      .once()
-      .withArgs(sinon.match(payload))
-      .returns(mockProject);
-
-    const result = service.create(payload);
-
-    projectModelMock.verify();
-
-    return expect(result)
-      .to.eventually.be.instanceOf(ProjectModel)
-      .and.to.satisfy((project: ProjectModel) => project.equals(mockProject))
-      .and.to.have.property("secret")
-      .and.to.be.a("string")
-      .and.to.match(/^[0-9a-f]+$/)
-      .and.to.have.lengthOf(64);
-  });
-
-  it("finds a project from its id", () => {
-    const id = faker.datatype.uuid();
-    const mockProject = new ProjectModel({ id });
-
-    projectModelMock
-      .expects("findByPk")
-      .once()
-      .withArgs(id)
-      .returns(mockProject);
-
-    const result = service.findById(id);
-
-    projectModelMock.verify();
-
-    return expect(result)
-      .to.eventually.be.instanceOf(ProjectModel)
-      .and.to.satisfy((project: ProjectModel) => project.id === id);
+      expect(findByPk.calledOnceWithExactly("id", { rejectOnEmpty: match.instanceOf(EmptyResultError) })).to.be.true;
+      expect(result).to.include({ id: "id" });
+    }));
   });
 });

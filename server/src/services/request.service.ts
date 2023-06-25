@@ -56,7 +56,7 @@ export class RequestService {
   }
 
   async token(request: RequestModel): Promise<RequestModel> {
-    const token = randomBytes(64).toString("hex");
+    const token = randomBytes(64).toString("base64");
 
     const result = await request.update({ token });
 

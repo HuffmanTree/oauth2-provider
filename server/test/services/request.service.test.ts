@@ -1,124 +1,75 @@
-import chai, { expect } from "chai";
-import chaiAsPromised from "chai-as-promised";
-import faker from "faker";
-import sinon from "sinon";
-import { OAuth2DatabaseClient } from "../../src/models";
-import { RequestModel } from "../../src/models/request.model";
+import { expect } from "chai";
+import { EmptyResultError } from "sequelize";
+import sinon, { match } from "sinon";
+import sinonTest from "sinon-test";
+import * as LoggerModule from "../../src/logger";
 import { RequestService } from "../../src/services/request.service";
+import { loggerMock } from "../helpers/mocks.helper";
+import { fakeRequestModel } from "../helpers/models.helper";
 
-chai.use(chaiAsPromised);
+const test = sinonTest(sinon);
 
 describe("RequestService", () => {
-  const { request: model } = new OAuth2DatabaseClient({});
-  const service = new RequestService(model);
-  let requestModelMock: sinon.SinonMock;
-  let requestModelPrototypeMock: sinon.SinonMock;
+  let service: RequestService;
+  const RequestModel = fakeRequestModel();
 
-  beforeEach(() => {
-    requestModelMock = sinon.mock(RequestModel);
-    requestModelPrototypeMock = sinon.mock(RequestModel.prototype);
+  before(test(function () {
+    this.stub(LoggerModule, "Logger").callsFake(loggerMock);
+    service = new RequestService(RequestModel);
+  }));
+
+  describe("create", () => {
+    it("creates a request", test(async function () {
+      const create = this.spy(RequestModel, "create");
+
+      const result = await service.create({ resourceOwner: "userId", clientId: "projectId", scope: ["name", "email"] });
+
+      expect(create.calledOnceWithExactly({ resourceOwner: "userId", clientId: "projectId", scope: ["name", "email"], code: match.string })).to.be.true;
+      expect(result)
+        .to.include({ resourceOwner: "userId", clientId: "projectId" })
+        .and.to.have.property("code")
+        .and.to.be.a("string")
+        .and.to.match(/^[0-9a-f]+$/)
+        .and.to.have.lengthOf(16);
+    }));
   });
 
-  afterEach(() => {
-    requestModelMock.restore();
-    requestModelPrototypeMock.restore();
+  describe("token", () => {
+    it("adds a token to a request", test(async function () {
+      const request = await RequestModel.findByPk("id", { rejectOnEmpty: true });
+      const update = this.spy(request, "update");
+
+      const result = await service.token(request);
+
+      // RegExp for Base64
+      expect(update.calledOnceWithExactly({ token: match(/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/) })).to.be.true;
+      expect(result)
+        .to.include({ id: "id" })
+        .and.to.have.property("token")
+        .and.to.be.a("string")
+        .and.to.match(/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/);
+    }));
   });
 
-  it("creates a request", () => {
-    const payload = {
-      resourceOwner: faker.datatype.uuid(),
-      clientId: faker.datatype.uuid(),
-      scope: faker.datatype.array().map((i) => i.toString()),
-    };
-    const mockRequest = new RequestModel({
-      ...payload,
-      code: faker.datatype.hexaDecimal(16).substring(2).toLowerCase(),
-    });
+  describe("findByClientIdAndCode", () => {
+    it("finds a request from its client id and authorization code", test(async function () {
+      const findOne = this.spy(RequestModel, "findOne");
 
-    requestModelMock
-      .expects("create")
-      .once()
-      .withArgs(sinon.match(payload))
-      .returns(mockRequest);
+      const result = await service.findByClientIdAndCode({ clientId: "projectId", code: "code" });
 
-    const result = service.create(payload);
-
-    requestModelMock.verify();
-
-    return expect(result)
-      .to.eventually.be.instanceOf(RequestModel)
-      .and.to.satisfy((request: RequestModel) => request.equals(mockRequest))
-      .and.to.have.property("code")
-      .and.to.be.a("string")
-      .and.to.match(/^[0-9a-f]+$/)
-      .and.to.have.lengthOf(16);
+      expect(findOne.calledOnceWithExactly({ where: { clientId: "projectId", code: "code" }, rejectOnEmpty: match.instanceOf(EmptyResultError) })).to.be.true;
+      expect(result).to.include({ clientId: "projectId", code: "code" });
+    }));
   });
 
-  it("adds a token to a request", () => {
-    const mockRequest = new RequestModel({
-      resourceOwner: faker.datatype.uuid(),
-      clientId: faker.datatype.uuid(),
-      scope: faker.datatype.array().map((i) => i.toString()),
-      code: faker.datatype.hexaDecimal(16).substring(2).toLowerCase(),
-      token: faker.datatype.hexaDecimal(128).substring(2).toLowerCase(),
-    });
+  describe("findByToken", () => {
+    it("finds a request from its access token", test(async function () {
+      const findOne = this.spy(RequestModel, "findOne");
 
-    requestModelPrototypeMock
-      .expects("update")
-      .once()
-      .withArgs({ token: sinon.match(/^[0-9a-f]+$/) })
-      .returns(mockRequest);
+      const result = await service.findByToken({ token: "token" });
 
-    const result = service.token(mockRequest);
-
-    requestModelMock.verify();
-
-    return expect(result)
-      .to.eventually.be.instanceOf(RequestModel)
-      .and.to.satisfy((request: RequestModel) => request.equals(mockRequest))
-      .and.to.have.property("token")
-      .and.to.be.a("string")
-      .and.to.match(/^[0-9a-f]+$/)
-      .and.to.have.lengthOf(128);
-  });
-
-  it("finds a request from its client id and authorization code", () => {
-    const clientId = faker.datatype.uuid();
-    const code = faker.datatype.hexaDecimal(16).substring(2).toLowerCase();
-    const mockRequest = new RequestModel({ clientId, code });
-
-    requestModelMock
-      .expects("findOne")
-      .once()
-      .withArgs(sinon.match({ where: { clientId, code } }))
-      .returns(mockRequest);
-
-    const result = service.findByClientIdAndCode({ clientId, code });
-
-    requestModelMock.verify();
-
-    return expect(result)
-      .to.eventually.be.instanceOf(RequestModel)
-      .and.to.satisfy((request: RequestModel) => (request.clientId === clientId) && (request.code === code));
-  });
-
-  it("finds a request from its client id and access token", () => {
-    const clientId = faker.datatype.uuid();
-    const token = faker.datatype.hexaDecimal(64).substring(2).toLowerCase();
-    const mockRequest = new RequestModel({ clientId, token });
-
-    requestModelMock
-      .expects("findOne")
-      .once()
-      .withArgs(sinon.match({ where: { token } }))
-      .returns(mockRequest);
-
-    const result = service.findByToken({ token });
-
-    requestModelMock.verify();
-
-    return expect(result)
-      .to.eventually.be.instanceOf(RequestModel)
-      .and.to.satisfy((request: RequestModel) => (request.clientId === clientId) && (request.token === token));
+      expect(findOne.calledOnceWithExactly({ where: { token: "token" }, rejectOnEmpty: match.instanceOf(EmptyResultError) })).to.be.true;
+      expect(result).to.include({ token: "token" });
+    }));
   });
 });

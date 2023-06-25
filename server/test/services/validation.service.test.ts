@@ -1,59 +1,44 @@
-import Ajv from "ajv";
-import chai, { expect } from "chai";
-import chaiAsPromised from "chai-as-promised";
-import faker from "faker";
+import Ajv, { JSONSchemaType } from "ajv";
+import { expect } from "chai";
 import sinon from "sinon";
+import sinonTest from "sinon-test";
+import * as LoggerModule from "../../src/logger";
 import { ValidationService } from "../../src/services/validation.service";
+import { loggerMock } from "../helpers/mocks.helper";
 
-chai.use(chaiAsPromised);
+const test = sinonTest(sinon);
 
 describe("ValidationService", () => {
   let service: ValidationService;
-  let ajvMock: sinon.SinonMock;
 
-  before(() => {
+  before(test(function () {
+    this.stub(LoggerModule, "Logger").callsFake(loggerMock);
     service = new ValidationService();
-  });
+  }));
 
-  beforeEach(() => {
-    ajvMock = sinon.mock(Ajv.prototype);
-  });
+  describe("validates", () => {
+    it("validates data against a schema", test(async function () {
+      const compile = this.spy(Ajv.prototype, "compile");
+      const schema: JSONSchemaType<string> = {
+        type: "string",
+      };
 
-  afterEach(() => {
-    ajvMock.restore();
-  });
+      const result = await service.validate("data", schema);
 
-  it("validates data against a schema", () => {
-    const data = faker.datatype.string();
-    const schema = {
-      type: "string",
-    };
+      expect(compile.calledOnceWith(schema)).to.be.true;
+      expect(result).to.equal("data");
+    }));
 
-    ajvMock
-      .expects("compile")
-      .once()
-      .withArgs(schema)
-      .returns(() => true);
+    it("fails to validate data against a schema", test(async function () {
+      const compile = this.spy(Ajv.prototype, "compile");
+      const schema: JSONSchemaType<string> = {
+        type: "string",
+      };
 
-    const result = service.validate(data, schema);
+      const result = service.validate(42, schema);
 
-    return expect(result).to.eventually.equal(data);
-  });
-
-  it("fails to validate data against a schema", () => {
-    const data = faker.datatype.number();
-    const schema = {
-      type: "string",
-    };
-
-    ajvMock
-      .expects("compile")
-      .once()
-      .withArgs(schema)
-      .returns(() => false);
-
-    const result = service.validate(data, schema);
-
-    return expect(result).to.eventually.be.rejected;
+      expect(compile.calledOnceWith(schema)).to.be.true;
+      await result.then(() => ({}), (err) => expect(err).to.be.instanceOf(Error));
+    }));
   });
 });

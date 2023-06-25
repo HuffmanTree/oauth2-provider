@@ -1,125 +1,77 @@
-import chai, { expect } from "chai";
-import chaiAsPromised from "chai-as-promised";
-import faker from "faker";
-import sinon from "sinon";
-import { OAuth2DatabaseClient } from "../../src/models";
-import { UserModel } from "../../src/models/user.model";
+import { expect } from "chai";
+import { EmptyResultError } from "sequelize";
+import sinon, { match } from "sinon";
+import sinonTest from "sinon-test";
+import * as LoggerModule from "../../src/logger";
 import { UserService } from "../../src/services/user.service";
+import { loggerMock } from "../helpers/mocks.helper";
+import { fakeUserModel } from "../helpers/models.helper";
 
-chai.use(chaiAsPromised);
+const test = sinonTest(sinon);
 
 describe("UserService", () => {
-  const { user: model } = new OAuth2DatabaseClient({});
-  const service = new UserService(model);
-  let userModelMock: sinon.SinonMock;
-  let userModelPrototypeMock: sinon.SinonMock;
+  let service: UserService;
+  const UserModel = fakeUserModel();
 
-  beforeEach(() => {
-    userModelMock = sinon.mock(UserModel);
-    userModelPrototypeMock = sinon.mock(UserModel.prototype);
+  before(test(function () {
+    this.stub(LoggerModule, "Logger").callsFake(loggerMock);
+    service = new UserService(UserModel);
+  }));
+
+  describe("create", () => {
+    it("creates a user", test(async function () {
+      const create = this.spy(UserModel, "create");
+
+      const result = await service.create({ name: "user", email: "user@domain.fr", password: "secret" });
+
+      expect(create.calledOnceWithExactly({ name: "user", email: "user@domain.fr", password: "secret" })).to.be.true;
+      expect(result).to.include({ name: "user", email: "user@domain.fr", password: "secret" });
+    }));
   });
 
-  afterEach(() => {
-    userModelMock.restore();
-    userModelPrototypeMock.restore();
+  describe("findById", () => {
+    it("finds a user from its id", test(async function () {
+      const findByPk = this.spy(UserModel, "findByPk");
+
+      const result = await service.findById("id");
+
+      expect(findByPk.calledOnceWithExactly("id", { attributes: undefined, rejectOnEmpty: match.instanceOf(EmptyResultError) })).to.be.true;
+      expect(result).to.include({ id: "id" });
+    }));
   });
 
-  it("creates a user", () => {
-    const payload = {
-      name: faker.name.findName(),
-      email: faker.internet.email(),
-      password: faker.internet.password(),
-    };
-    const mockUser = new UserModel(payload);
+  describe("findByEmail", () => {
+    it("finds a user from an email", test(async function () {
+      const findOne = this.spy(UserModel, "findOne");
 
-    userModelMock.expects("create").once().withArgs(payload).returns(mockUser);
+      const result = await service.findByEmail("user@domain.fr");
 
-    const result = service.create(payload);
-
-    userModelMock.verify();
-
-    return expect(result)
-      .to.eventually.be.instanceOf(UserModel)
-      .and.to.satisfy((user: UserModel) => user.equals(mockUser));
+      expect(findOne.calledOnceWithExactly({ rejectOnEmpty: true, where: { email: "user@domain.fr" } })).to.be.true;
+      expect(result).to.include({ email: "user@domain.fr" });
+    }));
   });
 
-  it("finds a user from its id", () => {
-    const id = faker.datatype.uuid();
-    const mockUser = new UserModel({ id });
+  describe("update", () => {
+    it("updates a user", test(async function () {
+      const user = await UserModel.findByPk("id", { rejectOnEmpty: true });
+      const update = this.spy(user, "update");
 
-    userModelMock.expects("findByPk").once().withArgs(id).returns(mockUser);
+      const result = await service.update(user, { email: "updated-user@domain.fr" });
 
-    const result = service.findById(id);
-
-    userModelMock.verify();
-
-    return expect(result)
-      .to.eventually.be.instanceOf(UserModel)
-      .and.to.satisfy((user: UserModel) => user.id === id);
+      expect(update.calledOnceWithExactly({ email: "updated-user@domain.fr" })).to.be.true;
+      expect(result).to.include({ id: "id" , email: "updated-user@domain.fr" });
+    }));
   });
 
-  it("finds a user from an email", () => {
-    const email = faker.internet.email();
-    const mockUser = new UserModel({ email });
+  describe("destroy", () => {
+    it("destroys a user", test(async function () {
+      const user = await UserModel.findOne({ rejectOnEmpty: true });
+      const destroy = this.spy(user, "destroy");
 
-    userModelMock
-      .expects("findOne")
-      .once()
-      .withArgs({ rejectOnEmpty: true, where: { email } })
-      .returns(mockUser);
+      const result = await service.destroy(user);
 
-    const result = service.findByEmail(email);
-
-    userModelMock.verify();
-
-    return expect(result)
-      .to.eventually.be.instanceOf(UserModel)
-      .and.to.satisfy((user: UserModel) => user.email == email);
-  });
-
-  it("updates a user", () => {
-    const payload = {
-      name: faker.name.findName(),
-      email: faker.internet.email(),
-      password: faker.internet.password(),
-    };
-    const email = faker.internet.email();
-    const originalUser = new UserModel(payload);
-    const mockUser = originalUser.set("email", email);
-
-    userModelPrototypeMock
-      .expects("update")
-      .once()
-      .withArgs({ email })
-      .returns(mockUser);
-
-    const result = service.update(originalUser, { email });
-
-    userModelPrototypeMock.verify();
-
-    return expect(result)
-      .to.eventually.be.instanceOf(UserModel)
-      .and.to.satisfy((user: UserModel) => user.equals(mockUser));
-  });
-
-  it("destroys a user", () => {
-    const payload = {
-      name: faker.name.findName(),
-      email: faker.internet.email(),
-      password: faker.internet.password(),
-    };
-    const originalUser = new UserModel(payload);
-
-    userModelPrototypeMock
-      .expects("destroy")
-      .once()
-      .withArgs()
-      .returns(undefined);
-
-    const result = service.destroy(originalUser);
-
-    userModelPrototypeMock.verify();
-
-    return expect(result).to.eventually.be.undefined;
+      expect(destroy.calledOnceWithExactly()).to.be.true;
+      expect(result).to.be.undefined;
+    }));
   });
 });
