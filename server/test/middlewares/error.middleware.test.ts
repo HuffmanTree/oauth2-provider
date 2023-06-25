@@ -15,45 +15,45 @@ import {
 describe("Error classes", () => {
   itParam<
     [
-      (
+    (
         | typeof BadRequest
         | typeof Unauthorized
         | typeof Forbidden
         | typeof NotFound
         | typeof Conflict
         | typeof InternalServerError
-      ),
+    ),
       number,
-    ]
-  >(
-    "Builds a ${value[0].name}",
-    [
-      [BadRequest, 400],
-      [Unauthorized, 401],
-      [Forbidden, 403],
-      [NotFound, 404],
-      [Conflict, 409],
-      [InternalServerError, 500],
-    ],
-    ([fn, expectedStatus]) => {
-      const message = faker.datatype.string();
-      const err = new fn(new Error(message));
+      ]
+      >(
+      "Builds a ${value[0].name}",
+      [
+        [BadRequest, 400],
+        [Unauthorized, 401],
+        [Forbidden, 403],
+        [NotFound, 404],
+        [Conflict, 409],
+        [InternalServerError, 500],
+      ],
+      ([fn, expectedStatus]) => {
+        const message = faker.datatype.string();
+        const err = new fn(new Error(message));
 
-      expect(err).to.be.instanceOf(fn);
-      expect(err)
-        .to.have.property("message")
-        .and.to.be.a("string")
-        .and.to.equal(message);
-      expect(err)
-        .to.have.property("name")
-        .and.to.be.a("string")
-        .and.to.equal(fn.name);
-      expect(err)
-        .to.have.property("status")
-        .and.to.be.a("number")
-        .and.to.equal(expectedStatus);
-    },
-  );
+        expect(err).to.be.instanceOf(fn);
+        expect(err)
+          .to.have.property("message")
+          .and.to.be.a("string")
+          .and.to.equal(message);
+        expect(err)
+          .to.have.property("name")
+          .and.to.be.a("string")
+          .and.to.equal(fn.name);
+        expect(err)
+          .to.have.property("status")
+          .and.to.be.a("number")
+          .and.to.equal(expectedStatus);
+      },
+      );
 });
 
 describe("ErrorMiddleware", () => {

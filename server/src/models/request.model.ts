@@ -32,14 +32,14 @@ export class RequestModel extends Model<
    * @example "e4b71187-2294-4d75-b37f-77f94b013889"
    */
   declare id: CreationOptional<string>;
-  
+
   /**
    * @description Resource owner
    *
    * @example "e4b71187-2294-4d75-b37f-77f94b013889"
    */
   declare resourceOwner: string;
-  
+
   /**
    * @description Project id
    *
@@ -53,7 +53,7 @@ export class RequestModel extends Model<
    * @example ["email", "name"]
    */
   declare scope: Array<string>;
-  
+
   /**
    * @description Temporary authorization code of the request
    *
@@ -106,7 +106,7 @@ export class RequestModel extends Model<
   static initialize(sequelize: Sequelize): typeof RequestModel {
     return RequestModel.init(
       {
-	id: {
+        id: {
           comment: "Identifier of the request",
           type: DataTypes.UUID,
           primaryKey: true,
@@ -135,7 +135,7 @@ export class RequestModel extends Model<
           },
           unique: "project_code",
         },
-	scope: {
+        scope: {
           comment: "Scope of the request",
           type: DataTypes.ARRAY(DataTypes.STRING),
           allowNull: false,

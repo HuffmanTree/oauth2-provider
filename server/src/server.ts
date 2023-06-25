@@ -121,8 +121,8 @@ export class OAuth2Server {
 
     this.app.use((req, res, next) => {
       this._logger.info({
-	headers: req.headers,
-	body: req.body,
+        headers: req.headers,
+        body: req.body,
       }, `${req.method.toUpperCase()} ${req.url}`);
 
       next();

@@ -27,6 +27,8 @@
     "@typescript-eslint/comma-dangle": ["error", "always-multiline"],
     "@typescript-eslint/no-explicit-any": "error",
     "import/no-cycle": "error",
-    "import/order": ["error", { "alphabetize": { "order": "asc", "caseInsensitive": true } }]
+    "import/order": ["error", { "alphabetize": { "order": "asc", "caseInsensitive": true } }],
+    "indent": ["error", 2, { "SwitchCase": 1 }],
+    "no-trailing-spaces": "error"
   }
 }

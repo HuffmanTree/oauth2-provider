@@ -23,24 +23,24 @@ export class AuthService {
       verifyOptions?: jwt.VerifyOptions & { complete: false };
     }
   > = {
-    test: {
-      privateKeyFile: "/tmp/test.key",
-      publicKeyFile: "/tmp/test.key.pub",
-    },
-    ci: {
-      privateKeyFile: "/tmp/test.key",
-      publicKeyFile: "/tmp/test.key.pub",
-    },
-    development: {
-      privateKeyFile: `${process.cwd()}/resources/keys/rsa.key`,
-      publicKeyFile: `${process.cwd()}/resources/keys/rsa.key.pub`,
-      signOptions: { algorithm: "RS256" },
-      verifyOptions: {
-        algorithms: ["RS256"],
-        complete: false,
+      test: {
+        privateKeyFile: "/tmp/test.key",
+        publicKeyFile: "/tmp/test.key.pub",
       },
-    },
-  };
+      ci: {
+        privateKeyFile: "/tmp/test.key",
+        publicKeyFile: "/tmp/test.key.pub",
+      },
+      development: {
+        privateKeyFile: `${process.cwd()}/resources/keys/rsa.key`,
+        publicKeyFile: `${process.cwd()}/resources/keys/rsa.key.pub`,
+        signOptions: { algorithm: "RS256" },
+        verifyOptions: {
+          algorithms: ["RS256"],
+          complete: false,
+        },
+      },
+    };
 
   constructor() {
     this._logger = new Logger({ service: "AuthService" });

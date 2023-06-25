@@ -129,7 +129,7 @@ export class OAuth2Controller {
       const result = await this._requestService.token(request);
 
       const json = {
-	access_token: result.token,
+        access_token: result.token,
         token_type: "Bearer",
       };
 
