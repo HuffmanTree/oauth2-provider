@@ -1,321 +1,95 @@
-import chai, { expect } from "chai";
-import chaiAsPromised from "chai-as-promised";
-import faker from "faker";
-import { EmptyResultError, UniqueConstraintError } from "sequelize";
-import sinon from "sinon";
+import { expect } from "chai";
+import { EmptyResultError, UniqueConstraintError, ValidationErrorItem } from "sequelize";
+import sinon, { match } from "sinon";
+import sinonTest from "sinon-test";
 import { ProjectController } from "../../src/controllers/project.controller";
-import { OAuth2DatabaseClient } from "../../src/models";
-import { ProjectModel } from "../../src/models/project.model";
-import { ProjectService } from "../../src/services/project.service";
+import * as LoggerModule from "../../src/logger";
+import * as ErrorModule from "../../src/middlewares/error.middleware";
+import { loggerMock, expressMock, errorMock } from "../helpers/mocks.helper";
+import { fakeProjectModel } from "../helpers/models.helper";
+import { fakeProjectService } from "../helpers/services.helper";
 
-chai.use(chaiAsPromised);
+const test = sinonTest(sinon);
 
 describe("ProjectController", () => {
-  const { project: model } = new OAuth2DatabaseClient({});
-  const service = new ProjectService(model);
-  const controller = new ProjectController(service);
-  let projectServicePrototypeMock: sinon.SinonMock;
+  let controller: ProjectController;
 
-  beforeEach(() => {
-    projectServicePrototypeMock = sinon.mock(ProjectService.prototype);
+  before(test(function () {
+    this.stub(LoggerModule, "Logger").callsFake(loggerMock);
+    controller = new ProjectController(fakeProjectService);
+  }));
+
+  describe("create", () => {
+    it("creates a project", test(async function () {
+      const express = expressMock({ body: {}, baseUrl: "/api/projects", path: "/", locals: {} });
+      this.stub(fakeProjectService, "create").resolves(fakeProjectModel().findOne({
+        where: { id: "id", name: "My project", redirectURL: "http://domain.fr", scope: ["name", "email"], creator: "userId" },
+      }));
+      const setHeader = this.spy(express.res, "setHeader");
+      const status = this.spy(express.res, "status");
+      const json = this.spy(express.res, "json");
+
+      await controller.create(express.req, express.res, express.next);
+
+      expect(setHeader.calledOnceWithExactly("Location", "/api/projects/id")).to.be.true;
+      expect(status.calledOnceWithExactly(201)).to.be.true;
+      expect(json.calledOnceWithExactly(match({ id: "id", name: "My project", redirectURL: "http://domain.fr", scope: ["name", "email"], creator: "userId" }))).to.be.true;
+    }));
+
+    it("fails to create a project", test(async function () {
+      const express = expressMock({ body: {} });
+      const next = this.spy(express, "next");
+      this.stub(fakeProjectService, "create").rejects(new Error());
+
+      await controller.create(express.req, express.res, express.next);
+
+      expect(next.calledOnceWithExactly(match.instanceOf(Error))).to.be.true;
+    }));
+
+    it("fails to create a project when a conflict occurs", test(async function () {
+      const express = expressMock({ body: {} });
+      const next = this.spy(express, "next");
+      this.stub(fakeProjectService, "create").rejects(new UniqueConstraintError({ errors: [{ message: "error message" } as ValidationErrorItem] }));
+      this.stub(ErrorModule, "Conflict").callsFake(errorMock.Conflict);
+
+      await controller.create(express.req, express.res, express.next);
+
+      expect(next.calledOnceWithExactly(match.instanceOf(Error))).to.be.true;
+    }));
   });
 
-  afterEach(() => {
-    projectServicePrototypeMock.restore();
-  });
+  describe("find", () => {
+    it("finds a project", test(async function () {
+      const express = expressMock({ params: {} });
+      this.stub(fakeProjectService, "findById").resolves(fakeProjectModel().findByPk("id"));
+      const status = this.spy(express.res, "status");
+      const json = this.spy(express.res, "json");
 
-  it("creates a project", () => {
-    const payload = {
-      name: faker.name.findName(),
-      redirectURL: faker.internet.url(),
-      scope: faker.datatype.array().map((i) => i.toString()),
-    };
-    const creator = faker.datatype.uuid();
-    const req = { body: payload, baseUrl: "/api/projects", path: "/" };
-    const res = {
-      status(n: number) {
-        void n;
+      await controller.find(express.req, express.res, express.next);
 
-        return this;
-      },
-      setHeader(k: string, v: string) {
-        void k, v;
+      expect(status.calledOnceWithExactly(200)).to.be.true;
+      expect(json.calledOnceWithExactly(match({ id: "id" }))).to.be.true;
+    }));
 
-        return this;
-      },
-      json(j: object) {
-        void j;
+    it("fails to find a project", test(async function () {
+      const express = expressMock({ params: {} });
+      const next = this.spy(express, "next");
+      this.stub(fakeProjectService, "findById").rejects(new Error(""));
 
-        return this;
-      },
-      locals: { user: creator },
-    };
-    const next = () => undefined;
-    const mockProject = new ProjectModel({ ...payload, creator });
-    const project = mockProject.toJSON();
+      await controller.find(express.req, express.res, express.next);
 
-    projectServicePrototypeMock
-      .expects("create")
-      .once()
-      .withArgs({ ...payload, creator })
-      .returns(mockProject);
+      expect(next.calledOnceWithExactly(match.instanceOf(Error))).to.be.true;
+    }));
 
-    const setHeader = sinon.spy(res, "setHeader");
-    const statusSpy = sinon.spy(res, "status");
-    const jsonSpy = sinon.spy(res, "json");
-    const nextSpy = sinon.spy(next);
+    it("fails to find a project when not found", test(async function () {
+      const express = expressMock({ params: {} });
+      const next = this.spy(express, "next");
+      this.stub(fakeProjectService, "findById").rejects(new EmptyResultError(""));
+      this.stub(ErrorModule, "NotFound").callsFake(errorMock.NotFound);
 
-    const result = controller.create(req, res, next);
+      await controller.find(express.req, express.res, express.next);
 
-    return expect(result).to.eventually.be.undefined.and.to.satisfy(() => {
-      expect(
-        setHeader.calledOnceWith("Location", `/api/projects/${mockProject.id}`),
-      ).to.be.true;
-      expect(statusSpy.calledOnceWith(201)).to.be.true;
-      expect(jsonSpy.calledOnceWith(project)).to.be.true;
-      expect(nextSpy.notCalled).to.be.true;
-
-      projectServicePrototypeMock.verify();
-
-      statusSpy.restore();
-      jsonSpy.restore();
-
-      return true;
-    });
-  });
-
-  it("fails to create a project", () => {
-    const payload = {
-      name: faker.name.findName(),
-      redirectURL: faker.internet.url(),
-      scope: faker.datatype.array().map((i) => i.toString()),
-    };
-    const creator = faker.datatype.uuid();
-    const req = { body: payload };
-    const res = {
-      status(n: number) {
-        void n;
-
-        return this;
-      },
-      json(j: object) {
-        void j;
-
-        return this;
-      },
-      locals: { user: creator },
-    };
-    const next = (err?: Error) => {
-      void err;
-    };
-
-    projectServicePrototypeMock
-      .expects("create")
-      .once()
-      .withArgs({ ...payload, creator })
-      .rejects(new Error());
-
-    const statusSpy = sinon.spy(res, "status");
-    const jsonSpy = sinon.spy(res, "json");
-
-    const result = controller.create(req, res, next);
-
-    return expect(result).to.eventually.be.undefined.and.to.satisfy(() => {
-      expect(statusSpy.notCalled).to.be.true;
-      expect(jsonSpy.notCalled).to.be.true;
-
-      projectServicePrototypeMock.verify();
-
-      statusSpy.restore();
-      jsonSpy.restore();
-
-      return true;
-    });
-  });
-
-  it("fails to create a project when a conflict occurs", () => {
-    const payload = {
-      name: faker.name.findName(),
-      redirectURL: faker.internet.url(),
-      scope: faker.datatype.array().map((i) => i.toString()),
-    };
-    const creator = faker.datatype.uuid();
-    const req = { body: payload };
-    const res = {
-      status(n: number) {
-        void n;
-
-        return this;
-      },
-      json(j: object) {
-        void j;
-
-        return this;
-      },
-      locals: { user: creator },
-    };
-    const next = (err?: Error) => {
-      void err;
-    };
-
-    projectServicePrototypeMock
-      .expects("create")
-      .once()
-      .withArgs({ ...payload, creator })
-      .rejects(new UniqueConstraintError({ errors: [{ message: "" }] }));
-
-    const statusSpy = sinon.spy(res, "status");
-    const jsonSpy = sinon.spy(res, "json");
-
-    const result = controller.create(req, res, next);
-
-    return expect(result).to.eventually.be.undefined.and.to.satisfy(() => {
-      expect(statusSpy.notCalled).to.be.true;
-      expect(jsonSpy.notCalled).to.be.true;
-
-      projectServicePrototypeMock.verify();
-
-      statusSpy.restore();
-      jsonSpy.restore();
-
-      return true;
-    });
-  });
-
-  it("finds a project", () => {
-    const payload = {
-      id: faker.datatype.uuid(),
-    };
-    const req = { params: payload };
-    const res = {
-      status(n: number) {
-        void n;
-
-        return this;
-      },
-      json(j: object) {
-        void j;
-
-        return this;
-      },
-    };
-    const next = () => undefined;
-    const mockProject = new ProjectModel(payload);
-    const { secret, ...projectWithoutSecret } = mockProject.toJSON();
-
-    projectServicePrototypeMock
-      .expects("findById")
-      .once()
-      .withArgs(payload.id)
-      .returns(mockProject);
-
-    const statusSpy = sinon.spy(res, "status");
-    const jsonSpy = sinon.spy(res, "json");
-    const nextSpy = sinon.spy(next);
-
-    const result = controller.find(req, res, next);
-
-    return expect(result).to.eventually.be.undefined.and.to.satisfy(() => {
-      expect(statusSpy.calledOnceWith(200)).to.be.true;
-      expect(jsonSpy.calledOnceWith(projectWithoutSecret)).to.be.true;
-      expect(nextSpy.notCalled).to.be.true;
-
-      projectServicePrototypeMock.verify();
-
-      statusSpy.restore();
-      jsonSpy.restore();
-
-      return true;
-    });
-  });
-
-  it("fails to find a project", () => {
-    const payload = {
-      id: faker.datatype.uuid(),
-    };
-    const req = { params: payload };
-    const res = {
-      status(n: number) {
-        void n;
-
-        return this;
-      },
-      json(j: object) {
-        void j;
-
-        return this;
-      },
-    };
-    const next = (err?: Error) => {
-      void err;
-    };
-
-    projectServicePrototypeMock
-      .expects("findById")
-      .once()
-      .withArgs(payload.id)
-      .rejects(new Error());
-
-    const statusSpy = sinon.spy(res, "status");
-    const jsonSpy = sinon.spy(res, "json");
-
-    const result = controller.find(req, res, next);
-
-    return expect(result).to.eventually.be.undefined.and.to.satisfy(() => {
-      expect(statusSpy.notCalled).to.be.true;
-      expect(jsonSpy.notCalled).to.be.true;
-
-      projectServicePrototypeMock.verify();
-
-      statusSpy.restore();
-      jsonSpy.restore();
-
-      return true;
-    });
-  });
-
-  it("fails to find a project when not found", () => {
-    const payload = {
-      id: faker.datatype.uuid(),
-    };
-    const req = { params: payload };
-    const res = {
-      status(n: number) {
-        void n;
-
-        return this;
-      },
-      json(j: object) {
-        void j;
-
-        return this;
-      },
-    };
-    const next = (err?: Error) => {
-      void err;
-    };
-
-    projectServicePrototypeMock
-      .expects("findById")
-      .once()
-      .withArgs(payload.id)
-      .rejects(new EmptyResultError(""));
-
-    const statusSpy = sinon.spy(res, "status");
-    const jsonSpy = sinon.spy(res, "json");
-
-    const result = controller.find(req, res, next);
-
-    return expect(result).to.eventually.be.undefined.and.to.satisfy(() => {
-      expect(statusSpy.notCalled).to.be.true;
-      expect(jsonSpy.notCalled).to.be.true;
-
-      projectServicePrototypeMock.verify();
-
-      statusSpy.restore();
-      jsonSpy.restore();
-
-      return true;
-    });
+      expect(next.calledOnceWithExactly(match.instanceOf(Error))).to.be.true;
+    }));
   });
 });

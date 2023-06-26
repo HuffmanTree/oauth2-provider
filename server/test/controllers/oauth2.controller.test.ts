@@ -1,276 +1,143 @@
-import chai, { expect } from "chai";
-import chaiAsPromised from "chai-as-promised";
-import faker from "faker";
+import { expect } from "chai";
 import { EmptyResultError } from "sequelize";
-import sinon from "sinon";
+import sinon, { match } from "sinon";
+import sinonTest from "sinon-test";
 import { OAuth2Controller } from "../../src/controllers/oauth2.controller";
-import { OAuth2DatabaseClient } from "../../src/models";
-import { ProjectModel } from "../../src/models/project.model";
-import { RequestModel } from "../../src/models/request.model";
-import { ProjectService } from "../../src/services/project.service";
-import { RequestService } from "../../src/services/request.service";
+import * as LoggerModule from "../../src/logger";
+import * as ErrorModule from "../../src/middlewares/error.middleware";
+import { expressMock, loggerMock, errorMock } from "../helpers/mocks.helper";
+import { fakeProjectModel, fakeRequestModel, fakeUserModel } from "../helpers/models.helper";
+import { fakeProjectService, fakeRequestService, fakeUserService } from "../helpers/services.helper";
 
-chai.use(chaiAsPromised);
+const test = sinonTest(sinon);
 
 describe("OAuth2Controller", () => {
-  const { request: model, project: projectModel } = new OAuth2DatabaseClient({});
-  const projectService = new ProjectService(projectModel);
-  const requestService = new RequestService(model);
-  const controller = new OAuth2Controller(projectService, requestService);
-  let projectServicePrototypeMock: sinon.SinonMock;
-  let requestServicePrototypeMock: sinon.SinonMock;
+  let controller: OAuth2Controller;
 
-  beforeEach(() => {
-    projectServicePrototypeMock = sinon.mock(ProjectService.prototype);
-    requestServicePrototypeMock = sinon.mock(RequestService.prototype);
+  before(test(function () {
+    this.stub(LoggerModule, "Logger").callsFake(loggerMock);
+    controller = new OAuth2Controller(fakeProjectService, fakeRequestService, fakeUserService);
+  }));
+
+  describe("authorize", () => {
+    it("computes an oauth2 authorization code", test(async function () {
+      const express = expressMock({ query: { redirect_uri: "http://localhost:8080", scope: "" }, locals: {} });
+      const project = await fakeProjectModel({ allowRequestReturnedValue: true }).findOne();
+      this.stub(fakeProjectService, "findById").resolves(project);
+      this.stub(fakeRequestService, "create").resolves(fakeRequestModel().findOne({ where: { code: "the_code"} }));
+      const redirect = this.spy(express.res, "redirect");
+
+      await controller.authorize(express.req, express.res, express.next);
+
+      expect(redirect.calledOnceWithExactly("http://localhost:8080?code=the_code")).to.be.true;
+    }));
+
+    it("fails to compute an authorization code with an invalid client id", test(async function () {
+      const express = expressMock({ query: { scope: "" }, locals: {} });
+      this.stub(fakeProjectService, "findById").rejects(new EmptyResultError(""));
+      const next = this.spy(express, "next");
+      this.stub(ErrorModule, "Forbidden").callsFake(errorMock.Forbidden);
+
+      await controller.authorize(express.req, express.res, express.next);
+
+      expect(next.calledOnceWithExactly(match.instanceOf(Error))).to.be.true;
+    }));
+
+    it("fails to compute an authorization code with a disallowed request", test(async function () {
+      const express = expressMock({ query: { scope: "" }, locals: {} });
+      const project = await fakeProjectModel({ allowRequestReturnedValue: false }).findOne();
+      this.stub(fakeProjectService, "findById").resolves(project);
+      const next = this.spy(express, "next");
+      this.stub(ErrorModule, "Forbidden").callsFake(errorMock.Forbidden);
+
+      await controller.authorize(express.req, express.res, express.next);
+
+      expect(next.calledOnceWithExactly(match.instanceOf(Error))).to.be.true;
+    }));
+
+    it("fails to compute an authorization code with another reason", test(async function () {
+      const express = expressMock({ query: { scope: "" }, locals: {} });
+      this.stub(fakeProjectService, "findById").rejects(new Error());
+      const next = this.spy(express, "next");
+
+      await controller.authorize(express.req, express.res, express.next);
+
+      expect(next.calledOnceWithExactly(match.instanceOf(Error))).to.be.true;
+    }));
   });
 
-  afterEach(() => {
-    projectServicePrototypeMock.restore();
-    requestServicePrototypeMock.restore();
+  describe("token", () => {
+    it("computes an oauth2 access token", test(async function () {
+      const express = expressMock({ body: {} });
+      const project = await fakeProjectModel({ verifySecretReturnedValue: true }).findOne();
+      this.stub(fakeProjectService, "findById").resolves(project);
+      this.stub(fakeRequestService, "findByClientIdAndCode").resolves(fakeRequestModel().findOne());
+      this.stub(fakeRequestService, "token").resolves(fakeRequestModel().findOne({ where: { token: "token" } }));
+      const status = this.spy(express.res, "status");
+      const json = this.spy(express.res, "json");
+
+      await controller.token(express.req, express.res, express.next);
+
+      expect(status.calledOnceWithExactly(200)).to.be.true;
+      expect(json.calledOnceWithExactly({ access_token: "token", token_type: "Bearer" })).to.be.true;
+    }));
+
+    it("fails to compute an oauth2 access token with a wrong secret", test(async function () {
+      const express = expressMock({ body: {} });
+      const project = await fakeProjectModel({ verifySecretReturnedValue: false }).findOne();
+      this.stub(fakeProjectService, "findById").resolves(project);
+      const next = this.spy(express, "next");
+      this.stub(ErrorModule, "Forbidden").callsFake(errorMock.Forbidden);
+
+      await controller.token(express.req, express.res, express.next);
+
+      expect(next.calledOnceWithExactly(match.instanceOf(Error))).to.be.true;
+    }));
+
+    it("fails to compute an oauth2 access token with another reasion", test(async function () {
+      const express = expressMock({ body: {} });
+      this.stub(fakeProjectService, "findById").rejects(new Error());
+      const next = this.spy(express, "next");
+
+      await controller.token(express.req, express.res, express.next);
+
+      expect(next.calledOnceWithExactly(match.instanceOf(Error))).to.be.true;
+    }));
   });
 
-  it("computes an oauth2 authorization code", () => {
-    const clientId = faker.datatype.uuid();
-    const redirectURI = faker.internet.url();
-    const scope = faker.datatype.array().map((i) => i.toString()).filter((i) => !i.includes(","));
-    const payload = {
-      client_id: clientId,
-      redirect_uri: redirectURI,
-      scope: scope.join(","),
-    };
-    const resourceOwner = faker.datatype.uuid();
-    const req = { query: payload };
-    const res = {
-      redirect(url: string) {
-        void url;
-      },
-      locals: { user: resourceOwner },
-    };
-    const next = () => undefined;
-    const mockProject = new ProjectModel({ id: clientId, redirectURL: redirectURI, scope });
-    const mockRequest = new RequestModel({
-      clientId: payload.client_id,
-      resourceOwner,
-      scope: payload.scope.split(","),
-    });
+  describe("info", () => {
+    it("finds a user from an oauth2 access token", test(async function () {
+      const express = expressMock();
+      this.stub(fakeRequestService, "findByToken").resolves(fakeRequestModel().findOne({ where: { token: "token" } }));
+      this.stub(fakeUserService, "findById").resolves(fakeUserModel().findByPk("id"));
+      const status = this.spy(express.res, "status");
+      const json = this.spy(express.res, "json");
 
-    projectServicePrototypeMock
-      .expects("findById")
-      .once()
-      .withArgs(clientId)
-      .returns(mockProject);
-    requestServicePrototypeMock
-      .expects("create")
-      .once()
-      .withArgs({
-        clientId: payload.client_id,
-        resourceOwner,
-        scope: payload.scope.split(","),
-      })
-      .returns(mockRequest);
+      await controller.info(express.req, express.res, express.next);
 
-    const redirect = sinon.spy(res, "redirect");
-    const nextSpy = sinon.spy(next);
+      expect(status.calledOnceWithExactly(200)).to.be.true;
+      expect(json.calledOnceWithExactly(match({ id: "id" }))).to.be.true;
+    }));
 
-    const result = controller.authorize(req, res, next);
+    it("fails to find a user from an invalid access token", test(async function () {
+      const express = expressMock();
+      this.stub(fakeRequestService, "findByToken").rejects(new EmptyResultError(""));
+      const next = this.spy(express, "next");
+      this.stub(ErrorModule, "Forbidden").callsFake(errorMock.Forbidden);
 
-    return expect(result).to.eventually.be.undefined.and.to.satisfy(() => {
-      expect(redirect.calledOnceWith(`${payload.redirect_uri}?code=${mockRequest.code}`)).to.be.true;
-      expect(nextSpy.notCalled).to.be.true;
+      await controller.info(express.req, express.res, express.next);
 
-      projectServicePrototypeMock.verify();
-      requestServicePrototypeMock.verify();
+      expect(next.calledOnceWithExactly(match.instanceOf(Error))).to.be.true;
+    }));
 
-      return true;
-    });
-  });
+    it("fails to find a user from an oauth2 token with another reason", test(async function () {
+      const express = expressMock();
+      this.stub(fakeRequestService, "findByToken").rejects(new Error(""));
+      const next = this.spy(express, "next");
 
-  it("fails to compute an authorization code with an invalid client id", () => {
-    const clientId = faker.datatype.uuid();
-    const redirectURI = faker.internet.url();
-    const scope = faker.datatype.array().map((i) => i.toString()).filter((i) => !i.includes(","));
-    const payload = {
-      client_id: clientId,
-      redirect_uri: redirectURI,
-      scope: scope.join(","),
-    };
-    const resourceOwner = faker.datatype.uuid();
-    const req = { query: payload };
-    const res = {
-      redirect(url: string) {
-        void url;
-      },
-      locals: { user: resourceOwner },
-    };
-    const next = () => undefined;
+      await controller.info(express.req, express.res, express.next);
 
-    projectServicePrototypeMock
-      .expects("findById")
-      .once()
-      .withArgs(clientId)
-      .throws(new EmptyResultError(""));
-    requestServicePrototypeMock.expects("create").never();
-
-    const redirect = sinon.spy(res, "redirect");
-
-    const result = controller.authorize(req, res, next);
-
-    return expect(result).to.eventually.be.undefined.and.to.satisfy(() => {
-      expect(redirect.notCalled).to.be.true;
-
-      projectServicePrototypeMock.verify();
-      requestServicePrototypeMock.verify();
-
-      redirect.restore();
-
-      return true;
-    });
-  });
-
-  it("fails to compute an authorization code with a disallowed request", () => {
-    const clientId = faker.datatype.uuid();
-    const redirectURI = faker.internet.url();
-    const scope = faker.datatype.array().map((i) => i.toString()).filter((i) => !i.includes(","));
-    const payload = {
-      client_id: clientId,
-      redirect_uri: redirectURI,
-      scope: scope.join(","),
-    };
-    const resourceOwner = faker.datatype.uuid();
-    const req = { query: payload };
-    const res = {
-      redirect(url: string) {
-        void url;
-      },
-      locals: { user: resourceOwner },
-    };
-    const next = () => undefined;
-
-    projectServicePrototypeMock
-      .expects("findById")
-      .once()
-      .withArgs(clientId)
-      .returns({ allowRequest: () => false });
-    requestServicePrototypeMock.expects("create").never();
-
-    const redirect = sinon.spy(res, "redirect");
-
-    const result = controller.authorize(req, res, next);
-
-    return expect(result).to.eventually.be.undefined.and.to.satisfy(() => {
-      expect(redirect.notCalled).to.be.true;
-
-      projectServicePrototypeMock.verify();
-      requestServicePrototypeMock.verify();
-
-      redirect.restore();
-
-      return true;
-    });
-  });
-
-  it("fails to compute an authorization code with another reason", () => {
-    const clientId = faker.datatype.uuid();
-    const redirectURI = faker.internet.url();
-    const scope = faker.datatype.array().map((i) => i.toString()).filter((i) => !i.includes(","));
-    const payload = {
-      client_id: clientId,
-      redirect_uri: redirectURI,
-      scope: scope.join(","),
-    };
-    const resourceOwner = faker.datatype.uuid();
-    const req = { query: payload };
-    const res = {
-      redirect(url: string) {
-        void url;
-      },
-      locals: { user: resourceOwner },
-    };
-    const next = () => undefined;
-
-    projectServicePrototypeMock
-      .expects("findById")
-      .once()
-      .withArgs(clientId)
-      .throws(new Error("Cannot access database"));
-    requestServicePrototypeMock.expects("create").never();
-
-    const redirect = sinon.spy(res, "redirect");
-
-    const result = controller.authorize(req, res, next);
-
-    return expect(result).to.eventually.be.undefined.and.to.satisfy(() => {
-      expect(redirect.notCalled).to.be.true;
-
-      projectServicePrototypeMock.verify();
-      requestServicePrototypeMock.verify();
-
-      redirect.restore();
-
-      return true;
-    });
-  });
-
-  it("computes an oauth2 access token", () => {
-    const clientId = faker.datatype.uuid();
-    const clientSecret = faker.datatype.hexaDecimal(32).substring(2).toLowerCase();
-    const code = faker.datatype.hexaDecimal(16).substring(2).toLowerCase();
-
-    const payload = {
-      client_id: clientId,
-      client_secret: clientSecret,
-      code,
-    };
-    const req = { body: payload };
-    const res = {
-      status(n: number) {
-        void n;
-
-        return this;
-      },
-      json(j: object) {
-        void j;
-
-        return this;
-      },
-    };
-    const next = () => undefined;
-    const mockRequest = new RequestModel({ clientId, code });
-
-    requestServicePrototypeMock
-      .expects("findByClientIdAndCode")
-      .once()
-      .withArgs({
-        clientId,
-        code,
-      })
-      .returns(mockRequest);
-    requestServicePrototypeMock
-      .expects("token")
-      .once()
-      .returns({ token: "token" });
-    projectServicePrototypeMock
-      .expects("findById")
-      .once()
-      .withArgs(clientId)
-      .returns({ verifySecret: () => true });
-
-    const json = sinon.spy(res, "json");
-    const status = sinon.spy(res, "status");
-    const nextSpy = sinon.spy(next);
-
-    const result = controller.token(req, res, next);
-
-    return expect(result).to.eventually.be.undefined.and.to.satisfy(() => {
-      expect(status.calledOnceWith(200)).to.be.true;
-      expect(json.calledOnceWith({ access_token: "token", token_type: "Bearer" })).to.be.true;
-      expect(nextSpy.notCalled).to.be.true;
-
-      projectServicePrototypeMock.verify();
-      requestServicePrototypeMock.verify();
-
-      return true;
-    });
+      expect(next.calledOnceWithExactly(match.instanceOf(Error))).to.be.true;
+    }));
   });
 });
