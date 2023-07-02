@@ -95,7 +95,7 @@ export class UserRouter {
       // UpdateUser
       this.router.patch(
         "/:id([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})",
-        authMiddleware.authenticate.bind(authMiddleware),
+        authMiddleware.authenticate.bind(authMiddleware, true),
         permissionMiddleware
           .permitRequest(UserRouter.isCurrentUserTargetted)
           .bind(permissionMiddleware),
@@ -114,7 +114,7 @@ export class UserRouter {
       // DestroyUser
       this.router.delete(
         "/:id([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})",
-        authMiddleware.authenticate.bind(authMiddleware),
+        authMiddleware.authenticate.bind(authMiddleware, true),
         permissionMiddleware
           .permitRequest(UserRouter.isCurrentUserTargetted)
           .bind(permissionMiddleware),

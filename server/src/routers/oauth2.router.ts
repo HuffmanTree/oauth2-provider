@@ -47,7 +47,7 @@ export class OAuth2Router {
       // Authorize
       this.router.get(
         "/authorize",
-        authMiddleware.authenticate.bind(authMiddleware),
+        authMiddleware.authenticate.bind(authMiddleware, true),
         middleware
           .validateRequest<
           unknown,
@@ -123,7 +123,7 @@ export class OAuth2Router {
       // UserInfo
       this.router.get(
         "/userinfo",
-        authMiddleware.authenticate.bind(authMiddleware),
+        authMiddleware.authenticate.bind(authMiddleware, false),
         controller.info.bind(controller),
       );
     }

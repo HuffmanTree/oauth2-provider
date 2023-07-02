@@ -1,5 +1,4 @@
 import { expect } from "chai";
-import itParam from "mocha-param";
 import { OAuth2Controller } from "../../src/controllers/oauth2.controller";
 import { AuthMiddleware } from "../../src/middlewares/auth.middleware";
 import { ValidationMiddleware } from "../../src/middlewares/validation.middleware";
@@ -23,14 +22,12 @@ describe("OAuth2Router", () => {
     router = new OAuth2Router(controller, middleware, authMiddleware);
   });
 
-  itParam(
-    "ensures ${value[0]} ${value[1]} is present",
-    [
-      ["GET", "/authorize"],
-      ["POST", "/token"],
-      ["GET", "/userinfo"],
-    ],
-    ([method, path]) => {
+  [
+    { method: "GET", path: "/authorize" },
+    { method: "POST", path: "/token" },
+    { method: "GET", path: "/userinfo" },
+  ].forEach(({ method, path }) =>
+    it(`ensures ${method} ${path} is present`, function () {
       const route = router.router.stack.find((s) => {
         if (s.route.path !== path) return false;
         if (!s.route.methods[method.toLowerCase()]) return false;
@@ -39,6 +36,5 @@ describe("OAuth2Router", () => {
       });
 
       expect(route).to.not.be.undefined;
-    },
-  );
+    }));
 });

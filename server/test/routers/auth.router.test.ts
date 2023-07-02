@@ -1,5 +1,4 @@
 import { expect } from "chai";
-import itParam from "mocha-param";
 import { AuthController } from "../../src/controllers/auth.controller";
 import { ValidationMiddleware } from "../../src/middlewares/validation.middleware";
 import { AuthRouter } from "../../src/routers/auth.router";
@@ -15,10 +14,10 @@ describe("AuthRouter", () => {
     router = new AuthRouter(controller, middleware);
   });
 
-  itParam(
-    "ensures ${value[0]} ${value[1]} is present",
-    [["POST", "/login"]],
-    ([method, path]) => {
+  [
+    { method: "POST", path: "/login" },
+  ].forEach(({ method, path }) =>
+    it(`ensures ${method} ${path} is present`, function () {
       const route = router.router.stack.find((s) => {
         if (s.route.path !== path) return false;
         if (!s.route.methods[method.toLowerCase()]) return false;
@@ -27,6 +26,5 @@ describe("AuthRouter", () => {
       });
 
       expect(route).to.not.be.undefined;
-    },
-  );
+    }));
 });
