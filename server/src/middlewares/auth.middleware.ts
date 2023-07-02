@@ -15,49 +15,52 @@ export class AuthMiddleware {
     this._logger = new Logger({ service: "AuthMiddleware" });
   }
 
-  async authenticate(
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ): Promise<void> {
-    const original = new Error("Check 'WWW-Authenticate' header");
-    const authorization = req.headers.authorization;
+  authenticate(jwt: boolean) {
+    return async (
+      req: Request,
+      res: Response,
+      next: NextFunction,
+    ): Promise<void> => {
+      const original = new Error("Check 'WWW-Authenticate' header");
+      const authorization = req.headers.authorization;
 
-    if (!authorization) {
-      this._logger.warn({}, "Missing 'authorization' header");
+      if (!authorization) {
+        this._logger.warn({}, "Missing 'authorization' header");
 
-      res.setHeader("WWW-Authenticate", "Bearer missing_token");
+        res.setHeader("WWW-Authenticate", "Bearer missing_token");
 
-      return next(new Unauthorized(original));
-    }
+        return next(new Unauthorized(original));
+      }
 
-    const [scheme, token] = authorization.split(" ");
+      const [scheme, token] = authorization.split(" ");
 
-    switch (scheme) {
-      case "Bearer": {
-        try {
-          if (req.baseUrl.endsWith("/oauth2")) res.locals.access = token;
-          else res.locals.user = await this._service.verify(token);
+      switch (scheme) {
+        case "Bearer": {
+          try {
+            res.locals.token = token;
 
-          return next();
-        } catch (err) {
-          this._logger.warn({ authorization, err }, "Authentication failed");
+            if (jwt) res.locals.user = await this._service.verify(token);
 
-          res.setHeader(
-            "WWW-Authenticate",
-            `Bearer invalid_token: ${unknownToError(err).message}`,
-          );
+            return next();
+          } catch (err) {
+            this._logger.warn({ authorization, err }, "Authentication failed");
+
+            res.setHeader(
+              "WWW-Authenticate",
+              `Bearer invalid_token: ${unknownToError(err).message}`,
+            );
+
+            return next(new Unauthorized(original));
+          }
+        }
+        default: {
+          this._logger.warn({ authorization }, `Unknown scheme '${scheme}'`);
+
+          res.setHeader("WWW-Authenticate", "Bearer unknown_scheme");
 
           return next(new Unauthorized(original));
         }
       }
-      default: {
-        this._logger.warn({ authorization }, `Unknown scheme '${scheme}'`);
-
-        res.setHeader("WWW-Authenticate", "Bearer unknown_scheme");
-
-        return next(new Unauthorized(original));
-      }
-    }
+    };
   }
 }

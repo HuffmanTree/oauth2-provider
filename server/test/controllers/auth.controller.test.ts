@@ -1,258 +1,69 @@
-import fs from "fs";
 import { expect } from "chai";
-import faker from "faker";
 import { EmptyResultError } from "sequelize";
-import sinon from "sinon";
+import sinon, { match } from "sinon";
+import sinonTest from "sinon-test";
 import { AuthController } from "../../src/controllers/auth.controller";
-import { OAuth2DatabaseClient } from "../../src/models";
-import { UserModel } from "../../src/models/user.model";
-import { AuthService } from "../../src/services/auth.service";
-import { UserService } from "../../src/services/user.service";
+import * as LoggerModule from "../../src/logger";
+import * as ErrorModule from "../../src/middlewares/error.middleware";
+import { loggerMock, expressMock, errorMock } from "../helpers/mocks.helper";
+import { fakeUserModel } from "../helpers/models.helper";
+import { fakeAuthService, fakeUserService } from "../helpers/services.helper";
+
+const test = sinonTest(sinon);
 
 describe("AuthController", () => {
-  const { user: model } = new OAuth2DatabaseClient({});
-  const userService = new UserService(model);
-  let authService: AuthService;
   let controller: AuthController;
-  let userServicePrototypeMock: sinon.SinonMock;
-  let authServicePrototypeMock: sinon.SinonMock;
 
-  before(() => {
-    const fsMock = sinon.mock(fs);
+  before(test(function () {
+    this.stub(LoggerModule, "Logger").callsFake(loggerMock);
+    controller = new AuthController(fakeUserService, fakeAuthService);
+  }));
 
-    fsMock
-      .expects("readFileSync")
-      .once()
-      .withArgs("/tmp/test.key")
-      .returns(Buffer.from("secret"));
-    fsMock
-      .expects("readFileSync")
-      .once()
-      .withArgs("/tmp/test.key.pub")
-      .returns(Buffer.from("secret"));
+  describe("login", () => {
+    it("logs a user in", test(async function () {
+      const express = expressMock({ body: {} });
+      const status = this.spy(express.res, "status");
+      const json = this.spy(express.res, "json");
+      this.stub(fakeUserService, "findByEmail").resolves(fakeUserModel().findOne({ where: { id: "id", email: "user@domain.fr" } }));
+      this.stub(fakeAuthService, "login").resolves("jwt");
 
-    authService = new AuthService();
-    controller = new AuthController(userService, authService);
+      await controller.login(express.req, express.res, express.next);
 
-    fsMock.verify();
-    fsMock.restore();
-  });
+      expect(status.calledOnceWithExactly(200)).to.be.true;
+      expect(json.calledOnceWithExactly({ message: "Logged in as id", token: "jwt" })).to.be.true;
+    }));
 
-  beforeEach(() => {
-    userServicePrototypeMock = sinon.mock(UserService.prototype);
-    authServicePrototypeMock = sinon.mock(AuthService.prototype);
-  });
+    it("fails to log a user in with an unregistered email", test(async function () {
+      const express = expressMock({ body: {} });
+      const next = this.spy(express, "next");
+      this.stub(fakeUserService, "findByEmail").rejects(new EmptyResultError(""));
+      this.stub(ErrorModule, "Unauthorized").callsFake(errorMock.Unauthorized);
 
-  afterEach(() => {
-    userServicePrototypeMock.restore();
-    authServicePrototypeMock.restore();
-  });
+      await controller.login(express.req, express.res, express.next);
 
-  it("logs a user in", () => {
-    const email = faker.internet.email();
-    const password = faker.internet.password();
-    const payload = {
-      email,
-      password,
-    };
-    const req = { body: payload };
-    const res = {
-      status(n: number) {
-        void n;
+      expect(next.calledOnceWithExactly(match.instanceOf(Error))).to.be.true;
+    }));
 
-        return this;
-      },
-      json(j: object) {
-        void j;
+    it("fails to log a user in with an wrong password", test(async function () {
+      const express = expressMock({ body: {} });
+      const next = this.spy(express, "next");
+      this.stub(fakeUserService, "findByEmail").resolves(fakeUserModel().findOne());
+      this.stub(fakeAuthService, "login").rejects(new Error("Invalid password"));
+      this.stub(ErrorModule, "Unauthorized").callsFake(errorMock.Unauthorized);
 
-        return this;
-      },
-    };
-    const next = () => undefined;
-    const mockUser = new UserModel(payload);
+      await controller.login(express.req, express.res, express.next);
 
-    userServicePrototypeMock
-      .expects("findByEmail")
-      .once()
-      .withArgs(email)
-      .returns(mockUser);
-    authServicePrototypeMock
-      .expects("login")
-      .once()
-      .withArgs(mockUser, password)
-      .returns("jwt");
+      expect(next.calledOnceWithExactly(match.instanceOf(Error))).to.be.true;
+    }));
 
-    const statusSpy = sinon.spy(res, "status");
-    const jsonSpy = sinon.spy(res, "json");
-    const nextSpy = sinon.spy(next);
+    it("fails to log a user in with another reason", test(async function () {
+      const express = expressMock({ body: {} });
+      const next = this.spy(express, "next");
+      this.stub(fakeUserService, "findByEmail").rejects(new Error("Unknown error"));
 
-    const result = controller.login(req, res, next);
+      await controller.login(express.req, express.res, express.next);
 
-    return expect(result).to.eventually.be.undefined.and.to.satisfy(() => {
-      const payload = {
-        token: "jwt",
-        message: `Logged in as ${mockUser.id}`,
-      };
-      expect(statusSpy.calledOnceWith(200)).to.be.true;
-      expect(jsonSpy.calledOnceWith(payload)).to.be.true;
-      expect(nextSpy.notCalled).to.be.true;
-
-      userServicePrototypeMock.verify();
-      authServicePrototypeMock.verify();
-
-      statusSpy.restore();
-      jsonSpy.restore();
-
-      return true;
-    });
-  });
-
-  it("fails to log a user in with an invalid email", () => {
-    const email = faker.internet.email();
-    const password = faker.internet.password();
-    const payload = {
-      email,
-      password,
-    };
-    const req = { body: payload };
-    const res = {
-      status(n: number) {
-        void n;
-
-        return this;
-      },
-      json(j: object) {
-        void j;
-
-        return this;
-      },
-    };
-    const next = () => undefined;
-
-    userServicePrototypeMock
-      .expects("findByEmail")
-      .once()
-      .withArgs(email)
-      .throws(new EmptyResultError(""));
-    authServicePrototypeMock.expects("login").never();
-
-    const statusSpy = sinon.spy(res, "status");
-    const jsonSpy = sinon.spy(res, "json");
-
-    const result = controller.login(req, res, next);
-
-    return expect(result).to.eventually.be.undefined.and.to.satisfy(() => {
-      expect(statusSpy.notCalled).to.be.true;
-      expect(jsonSpy.notCalled).to.be.true;
-
-      userServicePrototypeMock.verify();
-      authServicePrototypeMock.verify();
-
-      statusSpy.restore();
-      jsonSpy.restore();
-
-      return true;
-    });
-  });
-
-  it("fails to log a user in with an invalid password", () => {
-    const email = faker.internet.email();
-    const password = faker.internet.password();
-    const payload = {
-      email,
-      password,
-    };
-    const req = { body: payload };
-    const res = {
-      status(n: number) {
-        void n;
-
-        return this;
-      },
-      json(j: object) {
-        void j;
-
-        return this;
-      },
-    };
-    const next = () => undefined;
-    const mockUser = new UserModel(payload);
-
-    userServicePrototypeMock
-      .expects("findByEmail")
-      .once()
-      .withArgs(email)
-      .returns(mockUser);
-    authServicePrototypeMock
-      .expects("login")
-      .once()
-      .withArgs(mockUser, password)
-      .throws(new Error("Invalid password"));
-
-    const statusSpy = sinon.spy(res, "status");
-    const jsonSpy = sinon.spy(res, "json");
-
-    const result = controller.login(req, res, next);
-
-    return expect(result).to.eventually.be.undefined.and.to.satisfy(() => {
-      expect(statusSpy.notCalled).to.be.true;
-      expect(jsonSpy.notCalled).to.be.true;
-
-      userServicePrototypeMock.verify();
-      authServicePrototypeMock.verify();
-
-      statusSpy.restore();
-      jsonSpy.restore();
-
-      return true;
-    });
-  });
-
-  it("fails to log a user in with another reason", () => {
-    const email = faker.internet.email();
-    const password = faker.internet.password();
-    const payload = {
-      email,
-      password,
-    };
-    const req = { body: payload };
-    const res = {
-      status(n: number) {
-        void n;
-
-        return this;
-      },
-      json(j: object) {
-        void j;
-
-        return this;
-      },
-    };
-    const next = () => undefined;
-
-    userServicePrototypeMock
-      .expects("findByEmail")
-      .once()
-      .withArgs(email)
-      .throws(new Error("Cannot access database"));
-    authServicePrototypeMock.expects("login").never();
-
-    const statusSpy = sinon.spy(res, "status");
-    const jsonSpy = sinon.spy(res, "json");
-
-    const result = controller.login(req, res, next);
-
-    return expect(result).to.eventually.be.undefined.and.to.satisfy(() => {
-      expect(statusSpy.notCalled).to.be.true;
-      expect(jsonSpy.notCalled).to.be.true;
-
-      userServicePrototypeMock.verify();
-      authServicePrototypeMock.verify();
-
-      statusSpy.restore();
-      jsonSpy.restore();
-
-      return true;
-    });
+      expect(next.calledOnceWithExactly(match.instanceOf(Error))).to.be.true;
+    }));
   });
 });

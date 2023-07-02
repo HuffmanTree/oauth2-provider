@@ -42,7 +42,7 @@ export class OAuth2Server {
 
   private _server?: Server;
 
-  constructor({ host, port }: Partial<OAuth2Server.Config>) {
+  constructor({ host, port }: Partial<OAuth2Server.Config> = {}) {
     this.app = express();
     this.app.use(bodyParser.urlencoded({ extended: true }));
     this.app.use(bodyParser.json());
@@ -117,7 +117,6 @@ export class OAuth2Server {
       validationMiddleware,
       authMiddleware,
     );
-
 
     this.app.use((req, res, next) => {
       this._logger.info({

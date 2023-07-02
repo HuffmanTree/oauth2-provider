@@ -1,118 +1,45 @@
 import { expect } from "chai";
-import faker from "faker";
-import itParam from "mocha-param";
-import sinon from "sinon";
+import sinon, { match } from "sinon";
+import sinonTest from "sinon-test";
+import * as LoggerModule from "../../src/logger";
+import * as ErrorModule from "../../src/middlewares/error.middleware";
 import { ValidationMiddleware } from "../../src/middlewares/validation.middleware";
-import { ValidationService } from "../../src/services/validation.service";
+import * as utils from "../../src/utils";
+import { loggerMock, expressMock, errorMock } from "../helpers/mocks.helper";
+import { fakeValidationService } from "../helpers/services.helper";
+
+const test = sinonTest(sinon);
 
 describe("ValidationMiddleware", () => {
-  let validationService: ValidationService;
   let middleware: ValidationMiddleware;
-  let validationServicePrototypeMock: sinon.SinonMock;
 
-  before(() => {
-    validationService = new ValidationService();
-    middleware = new ValidationMiddleware(validationService);
-  });
+  before(test(function () {
+    this.stub(LoggerModule, "Logger").callsFake(loggerMock);
+    middleware = new ValidationMiddleware(fakeValidationService);
+  }));
 
-  beforeEach(() => {
-    validationServicePrototypeMock = sinon.mock(ValidationService.prototype);
-  });
+  describe("validateRequest", () => {
+    ["body", "query", "params"].forEach(value =>
+      it(`validates a request ${value}`, test(async function () {
+        const express = expressMock({ [value]: {} });
+        this.stub(fakeValidationService, "validate").resolves();
+        const next = this.spy(express, "next");
 
-  afterEach(() => {
-    validationServicePrototypeMock.restore();
-  });
+        await middleware.validateRequest({ [`${value}Schema`]: {} })(express.req, express.res, express.next);
 
-  itParam(
-    "validates a request ${value}",
-    ["body", "query", "params"],
-    (value) => {
-      const req = {
-        [value]: {
-          age: faker.datatype.number().toString(),
-        },
-      };
-      const res = {
-        status(n: number) {
-          void n;
+        expect(next.calledOnceWithExactly()).to.be.true;
+      })));
 
-          return this;
-        },
-        json(j: object) {
-          void j;
+    it("fails to validate a request", test(async function () {
+      const express = expressMock({ body: {} });
+      this.stub(fakeValidationService, "validate").rejects(new Error());
+      this.stub(utils, "unknownToError").callsFake(errorMock.unknownToError);
+      this.stub(ErrorModule, "BadRequest").callsFake(errorMock.BadRequest);
+      const next = this.spy(express, "next");
 
-          return this;
-        },
-      };
-      const next = () => undefined;
+      await middleware.validateRequest<string, unknown, unknown>({ ["bodySchema"]: { type: "string" } })(express.req, express.res, express.next);
 
-      validationServicePrototypeMock
-        .expects("validate")
-        .once()
-        .withArgs(req[value])
-        .resolves(req[value]);
-
-      const result = middleware.validateRequest({
-        [`${value}Schema`]: {
-          type: "object",
-          properties: {
-            age: {
-              type: "string",
-            },
-          },
-          required: ["age"],
-        },
-      })(req, res, next);
-
-      return expect(result).to.eventually.be.undefined.and.to.satisfy(() => {
-        validationServicePrototypeMock.verify();
-
-        return true;
-      });
-    },
-  );
-
-  it("fails to validate a request", () => {
-    const req = {
-      body: {
-        age: faker.datatype.number().toString(),
-      },
-    };
-    const res = {
-      status(n: number) {
-        void n;
-
-        return this;
-      },
-      json(j: object) {
-        void j;
-
-        return this;
-      },
-    };
-    const next = () => undefined;
-
-    validationServicePrototypeMock
-      .expects("validate")
-      .once()
-      .withArgs(req.body)
-      .rejects("Validation failed");
-
-    const result = middleware.validateRequest({
-      bodySchema: {
-        type: "object",
-        properties: {
-          age: {
-            type: "string",
-          },
-        },
-      },
-    })(req, res, next);
-
-    return expect(result).to.eventually.be.undefined.and.to.satisfy(() => {
-      validationServicePrototypeMock.verify();
-
-      return true;
-    });
+      expect(next.calledOnceWithExactly(match.instanceOf(Error))).to.be.true;
+    }));
   });
 });

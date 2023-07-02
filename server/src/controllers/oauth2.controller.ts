@@ -65,7 +65,7 @@ export class OAuth2Controller {
   }
 
   async authorize(
-    req: Request<Record<string, string>, Record<string, string>, Record<string, string>, AuthorizeRequestQuery>,
+    req: Request<unknown, unknown, unknown, AuthorizeRequestQuery>,
     res: Response,
     next: NextFunction,
   ): Promise<void> {
@@ -108,14 +108,13 @@ export class OAuth2Controller {
   }
 
   async token(
-    req: Request<Record<string, string>, TokenResponseBody, TokenRequestBody>,
+    req: Request<unknown, TokenResponseBody, TokenRequestBody>,
     res: Response<TokenResponseBody>,
     next: NextFunction,
   ): Promise<void> {
     try {
       const { client_id: clientId, client_secret: clientSecret, code } = req.body;
 
-      const request = await this._requestService.findByClientIdAndCode({ clientId, code });
       const project = await this._projectService.findById(clientId);
 
       if (!project.verifySecret(clientSecret)) {
@@ -123,6 +122,8 @@ export class OAuth2Controller {
 
         throw new Error("Disallowed request");
       }
+
+      const request = await this._requestService.findByClientIdAndCode({ clientId, code });
 
       this._logger.info({}, "Generating a token");
 
@@ -146,12 +147,12 @@ export class OAuth2Controller {
   }
 
   async info(
-    req: Request<Record<string, string>, Record<string, string>>,
+    _req: Request<unknown, unknown>,
     res: Response,
     next: NextFunction,
   ): Promise<void> {
     try {
-      const token = res.locals.access;
+      const token = res.locals.token;
       const request = await this._requestService.findByToken({ token });
       const user = await this._userService.findById(request.resourceOwner, request.scope);
 

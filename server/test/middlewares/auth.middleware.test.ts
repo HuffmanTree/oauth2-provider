@@ -1,173 +1,73 @@
-import fs from "fs";
 import { expect } from "chai";
-import faker from "faker";
-import sinon from "sinon";
+import sinon, { match } from "sinon";
+import sinonTest from "sinon-test";
+import * as LoggerModule from "../../src/logger";
 import { AuthMiddleware } from "../../src/middlewares/auth.middleware";
-import { AuthService } from "../../src/services/auth.service";
+import * as ErrorModule from "../../src/middlewares/error.middleware";
+import * as utils from "../../src/utils";
+import { loggerMock, expressMock, errorMock } from "../helpers/mocks.helper";
+import { fakeAuthService } from "../helpers/services.helper";
+
+const test = sinonTest(sinon);
 
 describe("AuthMiddleware", () => {
-  let authService: AuthService;
   let middleware: AuthMiddleware;
-  let authServicePrototypeMock: sinon.SinonMock;
 
-  before(() => {
-    const fsMock = sinon.mock(fs);
+  before(test(function () {
+    this.stub(LoggerModule, "Logger").callsFake(loggerMock);
+    middleware = new AuthMiddleware(fakeAuthService);
+  }));
 
-    fsMock
-      .expects("readFileSync")
-      .once()
-      .withArgs("/tmp/test.key")
-      .returns(Buffer.from("secret"));
-    fsMock
-      .expects("readFileSync")
-      .once()
-      .withArgs("/tmp/test.key.pub")
-      .returns(Buffer.from("secret"));
-
-    authService = new AuthService();
-    middleware = new AuthMiddleware(authService);
-
-    fsMock.verify();
-    fsMock.restore();
-  });
-
-  beforeEach(() => {
-    authServicePrototypeMock = sinon.mock(AuthService.prototype);
-  });
-
-  afterEach(() => {
-    authServicePrototypeMock.restore();
-  });
-
-  it("authenticates a client", () => {
-    const token = faker.datatype.hexaDecimal();
-    const authorization = `Bearer ${token}`;
-    const req = { headers: { authorization }, baseUrl: "/api/users" };
-    const res = {
-      status(n: number) {
-        void n;
-
-        return this;
+  describe("authenticate", () => {
+    [
+      {
+        reason: "without 'authorization' header",
+        headers: {},
+        expectedWWWAuthenticateHeader: "Bearer missing_token",
       },
-      locals: {},
-      json(j: object) {
-        void j;
-
-        return this;
+      {
+        reason: "with an unknown scheme",
+        headers: { authorization: "Unknown token" },
+        expectedWWWAuthenticateHeader: "Bearer unknown_scheme",
       },
-    };
-    const next = () => undefined;
-
-    authServicePrototypeMock
-      .expects("verify")
-      .once()
-      .withArgs(token)
-      .returns(faker.datatype.uuid());
-
-    const result = middleware.authenticate(req, res, next);
-
-    return expect(result).to.eventually.be.undefined.and.to.satisfy(() => {
-      authServicePrototypeMock.verify();
-
-      return true;
-    });
-  });
-
-  it("fails to authenticate without 'authorization' header", () => {
-    const req = { headers: {} };
-    const res = {
-      status(n: number) {
-        void n;
-
-        return this;
+      {
+        reason: "with an invalid jwt verification",
+        headers: { authorization: "Bearer token" },
+        expectedWWWAuthenticateHeader: "Bearer invalid_token: invalid signature",
       },
-      setHeader(s: string) {
-        void s;
+    ].forEach(({ reason, headers, expectedWWWAuthenticateHeader }) =>
+      it(`fails to authenticate ${reason}`, test(async function () {
+        const express = expressMock({ headers });
+        const setHeader = this.spy(express.res, "setHeader");
+        const next = this.spy(express, "next");
+        this.stub(ErrorModule, "Unauthorized").callsFake(errorMock.Unauthorized);
+        this.stub(utils, "unknownToError").callsFake(errorMock.unknownToError);
+        this.stub(fakeAuthService, "verify").rejects(new Error("invalid signature"));
 
-        return this;
-      },
-      json(j: object) {
-        void j;
+        await middleware.authenticate(true)(express.req, express.res, express.next);
 
-        return this;
-      },
-    };
-    const next = () => undefined;
-    authServicePrototypeMock.expects("verify").never();
+        expect(setHeader.calledOnceWithExactly("WWW-Authenticate", expectedWWWAuthenticateHeader)).to.be.true;
+        expect(next.calledOnceWithExactly(match.instanceOf(Error))).to.be.true;
+      })));
 
-    const result = middleware.authenticate(req, res, next);
+    it("authenticates a client", test(async function () {
+      const express = expressMock({ headers: { authorization: "Bearer jwt" } });
+      const next = this.spy(express, "next");
 
-    return expect(result).to.eventually.be.undefined.and.to.satisfy(() => {
-      authServicePrototypeMock.verify();
+      await middleware.authenticate(true)(express.req, express.res, express.next);
 
-      return true;
-    });
-  });
+      expect(next.calledOnceWithExactly()).to.be.true;
+    }));
 
-  it("fails to authenticate with an unknown scheme", () => {
-    const token = faker.datatype.hexaDecimal();
-    const scheme = faker.datatype.string();
-    const authorization = `${scheme} ${token}`;
-    const req = { headers: { authorization } };
-    const res = {
-      status(n: number) {
-        void n;
+    it("bypasses jwt verification if token is not a jwt", test(async function () {
+      const express = expressMock({ headers: { authorization: "Bearer access_token" } });
+      const verify = this.spy(fakeAuthService, "verify");
+      const next = this.spy(express, "next");
 
-        return this;
-      },
-      setHeader(s: string) {
-        void s;
+      await middleware.authenticate(false)(express.req, express.res, express.next);
 
-        return this;
-      },
-      json(j: object) {
-        void j;
-
-        return this;
-      },
-    };
-    const next = () => undefined;
-    authServicePrototypeMock.expects("verify").never();
-
-    const result = middleware.authenticate(req, res, next);
-
-    return expect(result).to.eventually.be.undefined.and.to.satisfy(() => {
-      authServicePrototypeMock.verify();
-
-      return true;
-    });
-  });
-
-  it("fails to authenticate with an invalid verification", () => {
-    const token = faker.datatype.hexaDecimal();
-    const authorization = `Bearer ${token}`;
-    const req = { headers: { authorization }, baseUrl: "/api/users" };
-    const res = {
-      status(n: number) {
-        void n;
-
-        return this;
-      },
-      setHeader(s: string) {
-        void s;
-
-        return this;
-      },
-      json(j: object) {
-        void j;
-
-        return this;
-      },
-    };
-    const next = () => undefined;
-    authServicePrototypeMock.expects("verify").once().withArgs(token).rejects();
-
-    const result = middleware.authenticate(req, res, next);
-
-    return expect(result).to.eventually.be.undefined.and.to.satisfy(() => {
-      authServicePrototypeMock.verify();
-
-      return true;
-    });
+      expect(verify.notCalled).to.be.true;
+      expect(next.calledOnceWithExactly()).to.be.true;
+    }));
   });
 });

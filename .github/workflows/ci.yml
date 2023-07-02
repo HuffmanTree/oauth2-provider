@@ -27,5 +27,4 @@ jobs:
       - run: npm audit --audit-level=moderate
       - run: npm run lint
       - run: npm run build --if-present
-      - run: touch /tmp/test.key /tmp/test.key.pub
       - run: npm test

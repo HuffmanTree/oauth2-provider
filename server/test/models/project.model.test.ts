@@ -1,5 +1,4 @@
 import { expect } from "chai";
-import itParam from "mocha-param";
 import { Sequelize } from "sequelize";
 import { ProjectModel } from "../../src/models/project.model";
 
@@ -8,14 +7,15 @@ describe("ProjectModel", () => {
     dialect: "postgres",
   });
 
-  it("initializes the model", () => {
-    const result = ProjectModel.initialize(sequelize);
+  describe("initialize", () => {
+    it("initializes the model", () => {
+      const result = ProjectModel.initialize(sequelize);
 
-    expect(result).to.equal(ProjectModel);
+      expect(result).to.equal(ProjectModel);
+    });
   });
 
-  itParam(
-    "detects ${value.state} secret",
+  describe("verifySecret", () => {
     [
       {
         state: "a valid",
@@ -29,18 +29,15 @@ describe("ProjectModel", () => {
         inputSecret: "this_is_another_secret",
         expectedValidated: false,
       },
-    ],
-    ({ projectSecret, inputSecret, expectedValidated }) => {
-      const project = new ProjectModel({
-        secret: projectSecret,
-      });
+    ].forEach(({ state, projectSecret, inputSecret, expectedValidated }) =>
+      it(`detects ${state} secret`, function () {
+        const project = new ProjectModel({ name: "", redirectURL: "", scope: [], creator: "", secret: projectSecret });
 
-      expect(project.verifySecret(inputSecret)).to.equal(expectedValidated);
-    },
-  );
+        expect(project.verifySecret(inputSecret)).to.equal(expectedValidated);
+      }));
+  });
 
-  itParam(
-    "detects ${value.state} request",
+  describe("allowRequest", () => {
     [
       {
         state: "a disallowed (invalid 'redirectURL')",
@@ -66,13 +63,11 @@ describe("ProjectModel", () => {
         inputScope: ["field1", "field2"],
         expectedValidated: true,
       },
-    ],
-    ({ projectRedirectURL, projectScope, inputRedirectURL, inputScope, expectedValidated }) => {
-      const project = new ProjectModel({
-        redirectURL: projectRedirectURL,
-        scope: projectScope,
-      });
+    ].forEach(({ state, projectRedirectURL, projectScope, inputRedirectURL, inputScope, expectedValidated }) =>
+      it(`detects ${state} request`, function () {
+        const project = new ProjectModel({ name: "", creator: "", secret: "", redirectURL: projectRedirectURL, scope: projectScope });
 
-      expect(project.allowRequest(inputRedirectURL, inputScope)).to.equal(expectedValidated);
-    });
+        expect(project.allowRequest(inputRedirectURL, inputScope)).to.equal(expectedValidated);
+      }));
+  });
 });

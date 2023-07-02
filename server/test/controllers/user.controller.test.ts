@@ -1,713 +1,179 @@
-import chai, { expect } from "chai";
-import chaiAsPromised from "chai-as-promised";
-import faker from "faker";
-import { EmptyResultError, UniqueConstraintError } from "sequelize";
-import sinon from "sinon";
+import { expect } from "chai";
+import { EmptyResultError, UniqueConstraintError, ValidationErrorItem } from "sequelize";
+import sinon, { match } from "sinon";
+import sinonTest from "sinon-test";
 import { UserController } from "../../src/controllers/user.controller";
-import { OAuth2DatabaseClient } from "../../src/models";
-import { UserModel } from "../../src/models/user.model";
-import { UserService } from "../../src/services/user.service";
+import * as LoggerModule from "../../src/logger";
+import * as ErrorModule from "../../src/middlewares/error.middleware";
+import { loggerMock, expressMock, errorMock } from "../helpers/mocks.helper";
+import { fakeUserModel } from "../helpers/models.helper";
+import { fakeUserService } from "../helpers/services.helper";
 
-chai.use(chaiAsPromised);
+const test = sinonTest(sinon);
 
 describe("UserController", () => {
-  const { user: model } = new OAuth2DatabaseClient({});
-  const service = new UserService(model);
-  const controller = new UserController(service);
-  let userServicePrototypeMock: sinon.SinonMock;
+  let controller: UserController;
 
-  beforeEach(() => {
-    userServicePrototypeMock = sinon.mock(UserService.prototype);
+  before(test(function () {
+    this.stub(LoggerModule, "Logger").callsFake(loggerMock);
+    controller = new UserController(fakeUserService);
+  }));
+
+  describe("create", () => {
+    it("creates a user", test(async function () {
+      const express = expressMock({ body: {}, baseUrl: "/api/users", path: "/" });
+      this.stub(fakeUserService, "create").resolves(fakeUserModel().findOne({
+        where: { id: "id", name: "user", email: "user@domain.fr", password: "secret" },
+      }));
+      const setHeader = this.spy(express.res, "setHeader");
+      const status = this.spy(express.res, "status");
+      const json = this.spy(express.res, "json");
+
+      await controller.create(express.req, express.res, express.next);
+
+      expect(setHeader.calledOnceWithExactly("Location", "/api/users/id")).to.be.true;
+      expect(status.calledOnceWithExactly(201)).to.be.true;
+      expect(json.calledOnceWithExactly(match({ id: "id", name: "user", email: "user@domain.fr" }))).to.be.true;
+    }));
+
+    it("fails to create a user", test(async function () {
+      const express = expressMock({ body: {} });
+      const next = this.spy(express, "next");
+      this.stub(fakeUserService, "create").rejects(new Error());
+
+      await controller.create(express.req, express.res, express.next);
+
+      expect(next.calledOnceWithExactly(match.instanceOf(Error))).to.be.true;
+    }));
+
+    it("fails to create a user when a conflict occurs", test(async function () {
+      const express = expressMock({ body: {} });
+      const next = this.spy(express, "next");
+      this.stub(fakeUserService, "create").rejects(new UniqueConstraintError({ errors: [{ message: "error message" } as ValidationErrorItem] }));
+      this.stub(ErrorModule, "Conflict").callsFake(errorMock.Conflict);
+
+      await controller.create(express.req, express.res, express.next);
+
+      expect(next.calledOnceWithExactly(match.instanceOf(Error))).to.be.true;
+    }));
   });
 
-  afterEach(() => {
-    userServicePrototypeMock.restore();
+  describe("find", () => {
+    it("finds a user", test(async function () {
+      const express = expressMock({ params: {} });
+      this.stub(fakeUserService, "findById").resolves(fakeUserModel().findByPk("id"));
+      const status = this.spy(express.res, "status");
+      const json = this.spy(express.res, "json");
+
+      await controller.find(express.req, express.res, express.next);
+
+      expect(status.calledOnceWithExactly(200)).to.be.true;
+      expect(json.calledOnceWithExactly(match({ id: "id" }))).to.be.true;
+    }));
+
+    it("fails to find a user", test(async function () {
+      const express = expressMock({ params: {} });
+      const next = this.spy(express, "next");
+      this.stub(fakeUserService, "findById").rejects(new Error(""));
+
+      await controller.find(express.req, express.res, express.next);
+
+      expect(next.calledOnceWithExactly(match.instanceOf(Error))).to.be.true;
+    }));
+
+    it("fails to find a user when not found", test(async function () {
+      const express = expressMock({ params: {} });
+      const next = this.spy(express, "next");
+      this.stub(fakeUserService, "findById").rejects(new EmptyResultError(""));
+      this.stub(ErrorModule, "NotFound").callsFake(errorMock.NotFound);
+
+      await controller.find(express.req, express.res, express.next);
+
+      expect(next.calledOnceWithExactly(match.instanceOf(Error))).to.be.true;
+    }));
   });
 
-  it("creates a user", () => {
-    const payload = {
-      name: faker.name.findName(),
-      email: faker.internet.email(),
-      password: faker.internet.password(),
-    };
-    const req = { body: payload, baseUrl: "/api/users", path: "/" };
-    const res = {
-      status(n: number) {
-        void n;
+  describe("update", () => {
+    it("updates a user", test(async function () {
+      const express = expressMock({ params: {}, body: {} });
+      this.stub(fakeUserService, "findById").resolves(fakeUserModel().findByPk("id"));
+      this.stub(fakeUserService, "update").resolves(fakeUserModel().findOne({ where: { id: "id", name: "user" } }));
+      const status = this.spy(express.res, "status");
+      const json = this.spy(express.res, "json");
 
-        return this;
-      },
-      setHeader(k: string, v: string) {
-        void k, v;
+      await controller.update(express.req, express.res, express.next);
 
-        return this;
-      },
-      json(j: object) {
-        void j;
+      expect(status.calledOnceWithExactly(200)).to.be.true;
+      expect(json.calledOnceWithExactly(match({ id: "id", name: "user" }))).to.be.true;
+    }));
 
-        return this;
-      },
-    };
-    const next = () => undefined;
-    const mockUser = new UserModel(payload);
-    const { password, ...userWithoutPassword } = mockUser.toJSON();
+    it("fails to update a user", test(async function () {
+      const express = expressMock({ params: {}, body: {} });
+      const next = this.spy(express, "next");
+      this.stub(fakeUserService, "findById").rejects(new Error());
 
-    userServicePrototypeMock
-      .expects("create")
-      .once()
-      .withArgs(payload)
-      .returns(mockUser);
+      await controller.update(express.req, express.res, express.next);
 
-    const setHeader = sinon.spy(res, "setHeader");
-    const statusSpy = sinon.spy(res, "status");
-    const jsonSpy = sinon.spy(res, "json");
-    const nextSpy = sinon.spy(next);
+      expect(next.calledOnceWithExactly(match.instanceOf(Error))).to.be.true;
+    }));
 
-    const result = controller.create(req, res, next);
+    it("fails to update a user when not found", test(async function () {
+      const express = expressMock({ params: {}, body: {} });
+      const next = this.spy(express, "next");
+      this.stub(fakeUserService, "findById").rejects(new EmptyResultError(""));
+      this.stub(ErrorModule, "NotFound").callsFake(errorMock.NotFound);
 
-    return expect(result).to.eventually.be.undefined.and.to.satisfy(() => {
-      expect(setHeader.calledOnceWith("Location", `/api/users/${mockUser.id}`))
-        .to.be.true;
-      expect(statusSpy.calledOnceWith(201)).to.be.true;
-      expect(jsonSpy.calledOnceWith(userWithoutPassword)).to.be.true;
-      expect(nextSpy.notCalled).to.be.true;
+      await controller.update(express.req, express.res, express.next);
 
-      userServicePrototypeMock.verify();
+      expect(next.calledOnceWithExactly(match.instanceOf(Error))).to.be.true;
+    }));
 
-      statusSpy.restore();
-      jsonSpy.restore();
+    it("fails to update a user when a conflict occurs", test(async function () {
+      const express = expressMock({ params: {}, body: {} });
+      const next = this.spy(express, "next");
+      this.stub(fakeUserService, "findById").resolves(fakeUserModel().findOne());
+      this.stub(fakeUserService, "update").rejects(new UniqueConstraintError({ errors: [{ message: "error message" } as ValidationErrorItem] }));
+      this.stub(ErrorModule, "Conflict").callsFake(errorMock.Conflict);
 
-      return true;
-    });
+      await controller.update(express.req, express.res, express.next);
+
+      expect(next.calledOnceWithExactly(match.instanceOf(Error))).to.be.true;
+    }));
   });
 
-  it("fails to create a user", () => {
-    const payload = {
-      name: faker.name.findName(),
-      email: faker.internet.email(),
-      password: faker.internet.password(),
-    };
-    const req = { body: payload };
-    const res = {
-      status(n: number) {
-        void n;
-
-        return this;
-      },
-      json(j: object) {
-        void j;
-
-        return this;
-      },
-    };
-    const next = (err?: Error) => {
-      void err;
-    };
-
-    userServicePrototypeMock
-      .expects("create")
-      .once()
-      .withArgs(payload)
-      .rejects(new Error());
-
-    const statusSpy = sinon.spy(res, "status");
-    const jsonSpy = sinon.spy(res, "json");
-
-    const result = controller.create(req, res, next);
-
-    return expect(result).to.eventually.be.undefined.and.to.satisfy(() => {
-      expect(statusSpy.notCalled).to.be.true;
-      expect(jsonSpy.notCalled).to.be.true;
-
-      userServicePrototypeMock.verify();
-
-      statusSpy.restore();
-      jsonSpy.restore();
-
-      return true;
-    });
-  });
-
-  it("fails to create a user when a conflict occurs", () => {
-    const payload = {
-      name: faker.name.findName(),
-      email: faker.internet.email(),
-      password: faker.internet.password(),
-    };
-    const req = { body: payload };
-    const res = {
-      status(n: number) {
-        void n;
-
-        return this;
-      },
-      json(j: object) {
-        void j;
-
-        return this;
-      },
-    };
-    const next = (err?: Error) => {
-      void err;
-    };
-
-    userServicePrototypeMock
-      .expects("create")
-      .once()
-      .withArgs(payload)
-      .rejects(new UniqueConstraintError({ errors: [{ message: "" }] }));
-
-    const statusSpy = sinon.spy(res, "status");
-    const jsonSpy = sinon.spy(res, "json");
-
-    const result = controller.create(req, res, next);
-
-    return expect(result).to.eventually.be.undefined.and.to.satisfy(() => {
-      expect(statusSpy.notCalled).to.be.true;
-      expect(jsonSpy.notCalled).to.be.true;
-
-      userServicePrototypeMock.verify();
-
-      statusSpy.restore();
-      jsonSpy.restore();
-
-      return true;
-    });
-  });
-
-  it("finds a user", () => {
-    const payload = {
-      id: faker.datatype.uuid(),
-    };
-    const req = { params: payload };
-    const res = {
-      status(n: number) {
-        void n;
-
-        return this;
-      },
-      json(j: object) {
-        void j;
-
-        return this;
-      },
-    };
-    const next = () => undefined;
-    const mockUser = new UserModel(payload);
-    const { password, ...userWithoutPassword } = mockUser.toJSON();
-
-    userServicePrototypeMock
-      .expects("findById")
-      .once()
-      .withArgs(payload.id)
-      .returns(mockUser);
-
-    const statusSpy = sinon.spy(res, "status");
-    const jsonSpy = sinon.spy(res, "json");
-    const nextSpy = sinon.spy(next);
-
-    const result = controller.find(req, res, next);
-
-    return expect(result).to.eventually.be.undefined.and.to.satisfy(() => {
-      expect(statusSpy.calledOnceWith(200)).to.be.true;
-      expect(jsonSpy.calledOnceWith(userWithoutPassword)).to.be.true;
-      expect(nextSpy.notCalled).to.be.true;
-
-      userServicePrototypeMock.verify();
-
-      statusSpy.restore();
-      jsonSpy.restore();
-
-      return true;
-    });
-  });
-
-  it("fails to find a user", () => {
-    const payload = {
-      id: faker.datatype.uuid(),
-    };
-    const req = { params: payload };
-    const res = {
-      status(n: number) {
-        void n;
-
-        return this;
-      },
-      json(j: object) {
-        void j;
-
-        return this;
-      },
-    };
-    const next = (err?: Error) => {
-      void err;
-    };
-
-    userServicePrototypeMock
-      .expects("findById")
-      .once()
-      .withArgs(payload.id)
-      .rejects(new Error());
-
-    const statusSpy = sinon.spy(res, "status");
-    const jsonSpy = sinon.spy(res, "json");
-
-    const result = controller.find(req, res, next);
-
-    return expect(result).to.eventually.be.undefined.and.to.satisfy(() => {
-      expect(statusSpy.notCalled).to.be.true;
-      expect(jsonSpy.notCalled).to.be.true;
-
-      userServicePrototypeMock.verify();
-
-      statusSpy.restore();
-      jsonSpy.restore();
-
-      return true;
-    });
-  });
-
-  it("fails to find a user when not found", () => {
-    const payload = {
-      id: faker.datatype.uuid(),
-    };
-    const req = { params: payload };
-    const res = {
-      status(n: number) {
-        void n;
-
-        return this;
-      },
-      json(j: object) {
-        void j;
-
-        return this;
-      },
-    };
-    const next = (err?: Error) => {
-      void err;
-    };
-
-    userServicePrototypeMock
-      .expects("findById")
-      .once()
-      .withArgs(payload.id)
-      .rejects(new EmptyResultError(""));
-
-    const statusSpy = sinon.spy(res, "status");
-    const jsonSpy = sinon.spy(res, "json");
-
-    const result = controller.find(req, res, next);
-
-    return expect(result).to.eventually.be.undefined.and.to.satisfy(() => {
-      expect(statusSpy.notCalled).to.be.true;
-      expect(jsonSpy.notCalled).to.be.true;
-
-      userServicePrototypeMock.verify();
-
-      statusSpy.restore();
-      jsonSpy.restore();
-
-      return true;
-    });
-  });
-
-  it("updates a user", () => {
-    const payload = {
-      id: faker.datatype.uuid(),
-      name: faker.name.findName(),
-      email: faker.internet.email(),
-      password: faker.internet.password(),
-    };
-    const req = {
-      params: { id: payload.id },
-      body: {
-        name: payload.name,
-        email: payload.email,
-        password: payload.password,
-      },
-    };
-    const res = {
-      status(n: number) {
-        void n;
-
-        return this;
-      },
-      json(j: object) {
-        void j;
-
-        return this;
-      },
-    };
-    const next = () => undefined;
-    const mockUser = new UserModel(payload);
-    const originalUser = new UserModel({ id: payload.id });
-    const { password, ...userWithoutPassword } = mockUser.toJSON();
-
-    userServicePrototypeMock
-      .expects("findById")
-      .once()
-      .withArgs(payload.id)
-      .returns(originalUser);
-    userServicePrototypeMock
-      .expects("update")
-      .once()
-      .withArgs(originalUser, req.body)
-      .returns(mockUser);
-
-    const statusSpy = sinon.spy(res, "status");
-    const jsonSpy = sinon.spy(res, "json");
-    const nextSpy = sinon.spy(next);
-
-    const result = controller.update(req, res, next);
-
-    return expect(result).to.eventually.be.undefined.and.to.satisfy(() => {
-      expect(statusSpy.calledOnceWith(200)).to.be.true;
-      expect(jsonSpy.calledOnceWith(userWithoutPassword)).to.be.true;
-      expect(nextSpy.notCalled).to.be.true;
-
-      userServicePrototypeMock.verify();
-
-      statusSpy.restore();
-      jsonSpy.restore();
-
-      return true;
-    });
-  });
-
-  it("fails to update a user", () => {
-    const payload = {
-      id: faker.datatype.uuid(),
-      name: faker.name.findName(),
-      email: faker.internet.email(),
-      password: faker.internet.password(),
-    };
-    const req = {
-      params: { id: payload.id },
-      body: {
-        name: payload.name,
-        email: payload.email,
-        password: payload.password,
-      },
-    };
-    const res = {
-      status(n: number) {
-        void n;
-
-        return this;
-      },
-      json(j: object) {
-        void j;
-
-        return this;
-      },
-    };
-    const next = (err?: Error) => {
-      void err;
-    };
-    const originalUser = new UserModel({ id: payload.id });
-
-    userServicePrototypeMock
-      .expects("findById")
-      .once()
-      .withArgs(payload.id)
-      .returns(originalUser);
-    userServicePrototypeMock
-      .expects("update")
-      .once()
-      .withArgs(originalUser, req.body)
-      .rejects(new Error());
-
-    const statusSpy = sinon.spy(res, "status");
-    const jsonSpy = sinon.spy(res, "json");
-
-    const result = controller.update(req, res, next);
-
-    return expect(result).to.eventually.be.undefined.and.to.satisfy(() => {
-      expect(statusSpy.notCalled).to.be.true;
-      expect(jsonSpy.notCalled).to.be.true;
-
-      userServicePrototypeMock.verify();
-
-      statusSpy.restore();
-      jsonSpy.restore();
-
-      return true;
-    });
-  });
-
-  it("fails to update a user when not found", () => {
-    const payload = {
-      id: faker.datatype.uuid(),
-      name: faker.name.findName(),
-      email: faker.internet.email(),
-      password: faker.internet.password(),
-    };
-    const req = {
-      params: { id: payload.id },
-      body: {
-        name: payload.name,
-        email: payload.email,
-        password: payload.password,
-      },
-    };
-    const res = {
-      status(n: number) {
-        void n;
-
-        return this;
-      },
-      json(j: object) {
-        void j;
-
-        return this;
-      },
-    };
-    const next = (err?: Error) => {
-      void err;
-    };
-    const originalUser = new UserModel({ id: payload.id });
-
-    userServicePrototypeMock
-      .expects("findById")
-      .once()
-      .withArgs(payload.id)
-      .returns(originalUser);
-    userServicePrototypeMock
-      .expects("update")
-      .once()
-      .withArgs(originalUser, req.body)
-      .rejects(new EmptyResultError(""));
-
-    const statusSpy = sinon.spy(res, "status");
-    const jsonSpy = sinon.spy(res, "json");
-
-    const result = controller.update(req, res, next);
-
-    return expect(result).to.eventually.be.undefined.and.to.satisfy(() => {
-      expect(statusSpy.notCalled).to.be.true;
-      expect(jsonSpy.notCalled).to.be.true;
-
-      userServicePrototypeMock.verify();
-
-      statusSpy.restore();
-      jsonSpy.restore();
-
-      return true;
-    });
-  });
-
-  it("fails to update a user when a conflict occurs", () => {
-    const payload = {
-      id: faker.datatype.uuid(),
-      name: faker.name.findName(),
-      email: faker.internet.email(),
-      password: faker.internet.password(),
-    };
-    const req = {
-      params: { id: payload.id },
-      body: {
-        name: payload.name,
-        email: payload.email,
-        password: payload.password,
-      },
-    };
-    const res = {
-      status(n: number) {
-        void n;
-
-        return this;
-      },
-      json(j: object) {
-        void j;
-
-        return this;
-      },
-    };
-    const next = (err?: Error) => {
-      void err;
-    };
-    const originalUser = new UserModel({ id: payload.id });
-
-    userServicePrototypeMock
-      .expects("findById")
-      .once()
-      .withArgs(payload.id)
-      .returns(originalUser);
-    userServicePrototypeMock
-      .expects("update")
-      .once()
-      .withArgs(originalUser, req.body)
-      .rejects(new UniqueConstraintError({ errors: [{ message: "" }] }));
-
-    const statusSpy = sinon.spy(res, "status");
-    const jsonSpy = sinon.spy(res, "json");
-
-    const result = controller.update(req, res, next);
-
-    return expect(result).to.eventually.be.undefined.and.to.satisfy(() => {
-      expect(statusSpy.notCalled).to.be.true;
-      expect(jsonSpy.notCalled).to.be.true;
-
-      userServicePrototypeMock.verify();
-
-      statusSpy.restore();
-      jsonSpy.restore();
-
-      return true;
-    });
-  });
-
-  it("destroys a user", () => {
-    const payload = {
-      id: faker.datatype.uuid(),
-    };
-    const req = { params: payload };
-    const res = {
-      status(n: number) {
-        void n;
-
-        return this;
-      },
-      json(j: object) {
-        void j;
-
-        return this;
-      },
-    };
-    const next = () => undefined;
-    const originalUser = new UserModel(payload);
-
-    userServicePrototypeMock
-      .expects("findById")
-      .once()
-      .withArgs(payload.id)
-      .returns(originalUser);
-    userServicePrototypeMock
-      .expects("destroy")
-      .once()
-      .withArgs(originalUser)
-      .returns(undefined);
-
-    const statusSpy = sinon.spy(res, "status");
-    const jsonSpy = sinon.spy(res, "json");
-    const nextSpy = sinon.spy(next);
-
-    const result = controller.destroy(req, res, next);
-
-    return expect(result).to.eventually.be.undefined.and.to.satisfy(() => {
-      expect(statusSpy.calledOnceWith(200)).to.be.true;
-      expect(jsonSpy.calledOnceWith({ deleted: payload.id })).to.be.true;
-      expect(nextSpy.notCalled).to.be.true;
-
-      userServicePrototypeMock.verify();
-
-      statusSpy.restore();
-      jsonSpy.restore();
-
-      return true;
-    });
-  });
-
-  it("fails to destroy a user", () => {
-    const payload = {
-      id: faker.datatype.uuid(),
-    };
-    const req = { params: payload };
-    const res = {
-      status(n: number) {
-        void n;
-
-        return this;
-      },
-      json(j: object) {
-        void j;
-
-        return this;
-      },
-    };
-    const next = (err?: Error) => {
-      void err;
-    };
-    const originalUser = new UserModel({ id: payload.id });
-
-    userServicePrototypeMock
-      .expects("findById")
-      .once()
-      .withArgs(payload.id)
-      .returns(originalUser);
-    userServicePrototypeMock
-      .expects("destroy")
-      .once()
-      .withArgs(originalUser)
-      .rejects(new Error());
-
-    const statusSpy = sinon.spy(res, "status");
-    const jsonSpy = sinon.spy(res, "json");
-
-    const result = controller.destroy(req, res, next);
-
-    return expect(result).to.eventually.be.undefined.and.to.satisfy(() => {
-      expect(statusSpy.notCalled).to.be.true;
-      expect(jsonSpy.notCalled).to.be.true;
-
-      userServicePrototypeMock.verify();
-
-      statusSpy.restore();
-      jsonSpy.restore();
-
-      return true;
-    });
-  });
-
-  it("fails to destroy a user when not found", () => {
-    const payload = {
-      id: faker.datatype.uuid(),
-    };
-    const req = { params: payload };
-    const res = {
-      status(n: number) {
-        void n;
-
-        return this;
-      },
-      json(j: object) {
-        void j;
-
-        return this;
-      },
-    };
-    const next = (err?: Error) => {
-      void err;
-    };
-    const originalUser = new UserModel({ id: payload.id });
-
-    userServicePrototypeMock
-      .expects("findById")
-      .once()
-      .withArgs(payload.id)
-      .returns(originalUser);
-    userServicePrototypeMock
-      .expects("destroy")
-      .once()
-      .withArgs(originalUser)
-      .rejects(new EmptyResultError(""));
-
-    const statusSpy = sinon.spy(res, "status");
-    const jsonSpy = sinon.spy(res, "json");
-
-    const result = controller.destroy(req, res, next);
-
-    return expect(result).to.eventually.be.undefined.and.to.satisfy(() => {
-      expect(statusSpy.notCalled).to.be.true;
-      expect(jsonSpy.notCalled).to.be.true;
-
-      userServicePrototypeMock.verify();
-
-      statusSpy.restore();
-      jsonSpy.restore();
-
-      return true;
-    });
+  describe("destroy", () => {
+    it("destroys a user", test(async function () {
+      const express = expressMock({ params: {} });
+      this.stub(fakeUserService, "findById").resolves(fakeUserModel().findByPk("id"));
+      this.stub(fakeUserService, "destroy").resolves();
+      const status = this.spy(express.res, "status");
+      const json = this.spy(express.res, "json");
+
+      await controller.destroy(express.req, express.res, express.next);
+
+      expect(status.calledOnceWithExactly(200)).to.be.true;
+      expect(json.calledOnceWithExactly({ deleted: "id" })).to.be.true;
+    }));
+
+    it("fails to destroy a user", test(async function () {
+      const express = expressMock({ params: {} });
+      const next = this.spy(express, "next");
+      this.stub(fakeUserService, "findById").rejects(new Error(""));
+
+      await controller.destroy(express.req, express.res, express.next);
+
+      expect(next.calledOnceWithExactly(match.instanceOf(Error))).to.be.true;
+    }));
+
+    it("fails to destroy a user when not found", test(async function () {
+      const express = expressMock({ params: {} });
+      const next = this.spy(express, "next");
+      this.stub(fakeUserService, "findById").rejects(new EmptyResultError(""));
+      this.stub(ErrorModule, "NotFound").callsFake(errorMock.NotFound);
+
+      await controller.destroy(express.req, express.res, express.next);
+
+      expect(next.calledOnceWithExactly(match.instanceOf(Error))).to.be.true;
+    }));
   });
 });

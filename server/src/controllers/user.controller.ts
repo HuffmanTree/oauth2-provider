@@ -70,7 +70,7 @@ export class UserController {
   }
 
   async create(
-    req: Request<Record<string, string>, CreateResponseBody, CreateRequestBody>,
+    req: Request<unknown, CreateResponseBody, CreateRequestBody>,
     res: Response<CreateResponseBody>,
     next: NextFunction,
   ): Promise<void> {
@@ -173,7 +173,7 @@ export class UserController {
 
       const user = await this._service.findById(id);
       await this._service.destroy(user);
-      const json = { deleted: id };
+      const json = { deleted: user.id };
 
       res.status(200).json(json);
     } catch (err) {
