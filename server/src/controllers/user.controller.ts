@@ -75,11 +75,19 @@ export class UserController {
     next: NextFunction,
   ): Promise<void> {
     try {
-      const { email, givenName, familyName, password } = req.body;
+      const {
+        email,
+        givenName,
+        familyName,
+        password,
+        picture,
+        phoneNumber,
+        birthdate,
+      } = req.body;
 
-      this._logger.info({ email, givenName, familyName }, "Create operation payload");
+      this._logger.info({ email, givenName, familyName, picture, phoneNumber, birthdate }, "Create operation payload");
 
-      const result = await this._service.create({ email, givenName, familyName, password });
+      const result = await this._service.create({ email, givenName, familyName, picture, phoneNumber, birthdate, password });
       const { password: _, ...json } = result.toJSON();
 
       /**
@@ -131,15 +139,18 @@ export class UserController {
   ): Promise<void> {
     try {
       const { id } = req.params;
-      const { email, givenName, familyName, password } = req.body;
+      const { email, givenName, familyName, picture, phoneNumber, birthdate, password } = req.body;
 
-      this._logger.info({ id, email, givenName, familyName }, "Update operation payload");
+      this._logger.info({ id, email, givenName, familyName, picture, phoneNumber, birthdate }, "Update operation payload");
 
       const user = await this._service.findById(id);
       const result = await this._service.update(user, {
         email,
         givenName,
         familyName,
+        picture,
+        phoneNumber,
+        birthdate,
         password,
       });
       const { password: _, ...json } = result.toJSON();

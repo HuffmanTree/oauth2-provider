@@ -22,6 +22,9 @@ export class UserRouter {
         password: string;
         givenName: string;
         familyName: string;
+        picture: string;
+        phoneNumber?: string;
+        birthdate: string;
       }> = {
         type: "object",
         properties: {
@@ -42,8 +45,23 @@ export class UserRouter {
             type: "string",
             minLength: 1,
           },
+          picture: {
+            type: "string",
+            format: "uri",
+            minLength: 1,
+          },
+          phoneNumber: {
+            type: "string",
+            minLength: 1,
+            nullable: true,
+          },
+          birthdate: {
+            type: "string",
+            format: "date",
+            minLength: 1,
+          },
         },
-        required: ["email", "password", "givenName", "familyName"],
+        required: ["email", "password", "givenName", "familyName", "picture", "birthdate"],
       };
 
       // CreateUser
@@ -51,7 +69,7 @@ export class UserRouter {
         "/",
         middleware
           .validateRequest<
-          { email: string; password: string; givenName: string; familyName: string },
+          { email: string; password: string; givenName: string; familyName: string, picture: string; phoneNumber?: string; birthdate: string },
             unknown,
             unknown
           >({ bodySchema })
@@ -75,6 +93,9 @@ export class UserRouter {
           password: string;
           givenName: string;
           familyName: string;
+          picture: string;
+          phoneNumber: string;
+          birthdate: string;
         }>
       > = {
         type: "object",
@@ -100,6 +121,23 @@ export class UserRouter {
             minLength: 1,
             nullable: true,
           },
+          picture: {
+            type: "string",
+            format: "uri",
+            minLength: 1,
+            nullable: true,
+          },
+          phoneNumber: {
+            type: "string",
+            minLength: 1,
+            nullable: true,
+          },
+          birthdate: {
+            type: "string",
+            format: "date",
+            minLength: 1,
+            nullable: true,
+          },
         },
       };
 
@@ -112,7 +150,7 @@ export class UserRouter {
           .bind(permissionMiddleware),
         middleware
           .validateRequest<
-            Partial<{ email: string; password: string; givenName: string, familyName: string }>,
+          Partial<{ email: string; password: string; givenName: string; familyName: string; picture: string; phoneNumber?: string; birthdate: string }>,
             unknown,
             unknown
           >({ bodySchema })

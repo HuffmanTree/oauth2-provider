@@ -60,6 +60,27 @@ export class UserModel extends Model<
   declare familyName: string;
 
   /**
+   * @description URL to the picture of the user
+   *
+   * @example "https://domain.com/me.png"
+   */
+  declare picture: string;
+
+  /**
+   * @description Phone number of the user
+   *
+   * @example "+33123456789"
+   */
+  declare phoneNumber?: string;
+
+  /**
+   * @description Date of birth of the user
+   *
+   * @example "2000-09-07"
+   */
+  declare birthdate: string;
+
+  /**
    * @description User entry creation date
    *
    * @example "2022-09-07T14:04:00Z"
@@ -128,6 +149,22 @@ export class UserModel extends Model<
           type: DataTypes.STRING,
           allowNull: false,
           field: "family_name",
+        },
+        picture: {
+          comment: "URL to the picture of the user",
+          type: DataTypes.STRING,
+          allowNull: false,
+        },
+        phoneNumber: {
+          comment: "Phone number of the user",
+          type: DataTypes.STRING,
+          allowNull: true,
+          field: "phone_number",
+        },
+        birthdate: {
+          comment: "Date of birth of the user",
+          type: DataTypes.DATEONLY,
+          allowNull: false,
         },
         createdAt: {
           comment: "User entry creation date",

@@ -22,10 +22,10 @@ describe("UserService", () => {
     it("creates a user", test(async function () {
       const create = this.spy(UserModel, "create");
 
-      const result = await service.create({ givenName: "Jane", familyName: "Doe", email: "user@domain.fr", password: "secret" });
+      const result = await service.create({ givenName: "Jane", familyName: "Doe", email: "user@domain.fr", birthdate: "2000-02-03", picture: "https://domain.com/me.png", password: "secret" });
 
-      expect(create.calledOnceWithExactly({ givenName: "Jane", familyName: "Doe", email: "user@domain.fr", password: "secret" })).to.be.true;
-      expect(result).to.include({ givenName: "Jane", familyName: "Doe", email: "user@domain.fr", password: "secret" });
+      expect(create.calledOnceWithExactly({ givenName: "Jane", familyName: "Doe", email: "user@domain.fr", birthdate: "2000-02-03", picture: "https://domain.com/me.png", password: "secret" })).to.be.true;
+      expect(result).to.include({ givenName: "Jane", familyName: "Doe", email: "user@domain.fr", birthdate: "2000-02-03", picture: "https://domain.com/me.png", password: "secret" });
     }));
   });
 

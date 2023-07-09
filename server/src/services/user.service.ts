@@ -16,6 +16,9 @@ export class UserService {
   async create(payload: {
     givenName: string;
     familyName: string;
+    picture: string;
+    phoneNumber?: string;
+    birthdate: string;
     email: string;
     password: string;
   }): Promise<UserModel> {
@@ -53,6 +56,9 @@ export class UserService {
     payload: Partial<{
       givenName: string;
       familyName: string;
+      picture: string;
+      phoneNumber: string;
+      birthdate: string;
       email: string;
       password: string;
     }>,
