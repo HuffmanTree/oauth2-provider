@@ -46,11 +46,18 @@ export class UserModel extends Model<
   declare password: string;
 
   /**
-   * @description Full name of the user
+   * @description Given name of the user
    *
-   * @example "Jane Doe"
+   * @example "Jane"
    */
-  declare name: string;
+  declare givenName: string;
+
+  /**
+   * @description Family name of the user
+   *
+   * @example "Doe"
+   */
+  declare familyName: string;
 
   /**
    * @description User entry creation date
@@ -110,11 +117,17 @@ export class UserModel extends Model<
             this.setDataValue("password", bcrypt.hashSync(value, 10));
           },
         },
-        name: {
-          comment: "Full name of the user",
+        givenName: {
+          comment: "Given name of the user",
           type: DataTypes.STRING,
-          unique: true,
           allowNull: false,
+          field: "given_name",
+        },
+        familyName: {
+          comment: "Family name of the user",
+          type: DataTypes.STRING,
+          allowNull: false,
+          field: "family_name",
         },
         createdAt: {
           comment: "User entry creation date",

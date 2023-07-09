@@ -22,9 +22,9 @@ describe("RequestService", () => {
     it("creates a request", test(async function () {
       const create = this.spy(RequestModel, "create");
 
-      const result = await service.create({ resourceOwner: "userId", clientId: "projectId", scope: ["name", "email"] });
+      const result = await service.create({ resourceOwner: "userId", clientId: "projectId", scope: ["family_name", "email"] });
 
-      expect(create.calledOnceWithExactly({ resourceOwner: "userId", clientId: "projectId", scope: ["name", "email"], code: match.string })).to.be.true;
+      expect(create.calledOnceWithExactly({ resourceOwner: "userId", clientId: "projectId", scope: ["family_name", "email"], code: match.string })).to.be.true;
       expect(result)
         .to.include({ resourceOwner: "userId", clientId: "projectId" })
         .and.to.have.property("code")

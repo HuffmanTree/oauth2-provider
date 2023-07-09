@@ -18,7 +18,7 @@ export function fakeUserModel({
   verifyPasswordReturnedValue: boolean,
 }> = {}): typeof UserModel {
   const sequelize = new SequelizeMock();
-  const model = sequelize.define("user", modelDefaultValues(["id", "email", "password", "name"]), {
+  const model = sequelize.define("user", modelDefaultValues(["id", "email", "password", "givenName", "familyName"]), {
     instanceMethods: {
       verifyPassword() {
         if (typeof verifyPasswordReturnedValue !== "boolean") throw new Error("Missing 'verifyPasswordReturnedValue' to mock 'verifyPassword' method");

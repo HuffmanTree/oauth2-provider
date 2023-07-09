@@ -20,7 +20,8 @@ export class UserRouter {
       const bodySchema: JSONSchemaType<{
         email: string;
         password: string;
-        name: string;
+        givenName: string;
+        familyName: string;
       }> = {
         type: "object",
         properties: {
@@ -33,12 +34,16 @@ export class UserRouter {
             type: "string",
             minLength: 1,
           },
-          name: {
+          givenName: {
+            type: "string",
+            minLength: 1,
+          },
+          familyName: {
             type: "string",
             minLength: 1,
           },
         },
-        required: ["email", "password", "name"],
+        required: ["email", "password", "givenName", "familyName"],
       };
 
       // CreateUser
@@ -46,7 +51,7 @@ export class UserRouter {
         "/",
         middleware
           .validateRequest<
-            { email: string; password: string; name: string },
+          { email: string; password: string; givenName: string; familyName: string },
             unknown,
             unknown
           >({ bodySchema })
@@ -68,7 +73,8 @@ export class UserRouter {
         Partial<{
           email: string;
           password: string;
-          name: string;
+          givenName: string;
+          familyName: string;
         }>
       > = {
         type: "object",
@@ -84,7 +90,12 @@ export class UserRouter {
             minLength: 1,
             nullable: true,
           },
-          name: {
+          givenName: {
+            type: "string",
+            minLength: 1,
+            nullable: true,
+          },
+          familyName: {
             type: "string",
             minLength: 1,
             nullable: true,
@@ -101,7 +112,7 @@ export class UserRouter {
           .bind(permissionMiddleware),
         middleware
           .validateRequest<
-            Partial<{ email: string; password: string; name: string }>,
+            Partial<{ email: string; password: string; givenName: string, familyName: string }>,
             unknown,
             unknown
           >({ bodySchema })

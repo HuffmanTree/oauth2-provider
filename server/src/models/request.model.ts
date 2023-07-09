@@ -50,7 +50,7 @@ export class RequestModel extends Model<
   /**
    * @description Scope of the request
    *
-   * @example ["email", "name"]
+   * @example ["email", "family_name"]
    */
   declare scope: Array<string>;
 

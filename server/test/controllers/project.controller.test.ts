@@ -23,7 +23,7 @@ describe("ProjectController", () => {
     it("creates a project", test(async function () {
       const express = expressMock({ body: {}, baseUrl: "/api/projects", path: "/", locals: {} });
       this.stub(fakeProjectService, "create").resolves(fakeProjectModel().findOne({
-        where: { id: "id", name: "My project", redirectURL: "http://domain.fr", scope: ["name", "email"], creator: "userId" },
+        where: { id: "id", name: "My project", redirectURL: "http://domain.fr", scope: ["family_name", "email"], creator: "userId" },
       }));
       const setHeader = this.spy(express.res, "setHeader");
       const status = this.spy(express.res, "status");
@@ -33,7 +33,7 @@ describe("ProjectController", () => {
 
       expect(setHeader.calledOnceWithExactly("Location", "/api/projects/id")).to.be.true;
       expect(status.calledOnceWithExactly(201)).to.be.true;
-      expect(json.calledOnceWithExactly(match({ id: "id", name: "My project", redirectURL: "http://domain.fr", scope: ["name", "email"], creator: "userId" }))).to.be.true;
+      expect(json.calledOnceWithExactly(match({ id: "id", name: "My project", redirectURL: "http://domain.fr", scope: ["family_name", "email"], creator: "userId" }))).to.be.true;
     }));
 
     it("fails to create a project", test(async function () {

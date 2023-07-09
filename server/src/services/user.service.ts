@@ -14,7 +14,8 @@ export class UserService {
   }
 
   async create(payload: {
-    name: string;
+    givenName: string;
+    familyName: string;
     email: string;
     password: string;
   }): Promise<UserModel> {
@@ -50,7 +51,8 @@ export class UserService {
   async update(
     user: UserModel,
     payload: Partial<{
-      name: string;
+      givenName: string;
+      familyName: string;
       email: string;
       password: string;
     }>,

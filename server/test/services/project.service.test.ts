@@ -22,9 +22,9 @@ describe("ProjectService", () => {
     it("creates a project", test(async function () {
       const create = this.spy(ProjectModel, "create");
 
-      const result = await service.create({ name: "My project", redirectURL: "http://domain.fr", scope: ["name", "email"], creator: "userId" });
+      const result = await service.create({ name: "My project", redirectURL: "http://domain.fr", scope: ["family_name", "email"], creator: "userId" });
 
-      expect(create.calledOnceWithExactly({ name: "My project", redirectURL: "http://domain.fr", scope: ["name", "email"], creator: "userId", secret: match.string })).to.be.true;
+      expect(create.calledOnceWithExactly({ name: "My project", redirectURL: "http://domain.fr", scope: ["family_name", "email"], creator: "userId", secret: match.string })).to.be.true;
       expect(result)
         .to.include({ name: "My project", redirectURL: "http://domain.fr", creator: "userId" })
         .and.to.have.property("secret")

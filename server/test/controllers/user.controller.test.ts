@@ -23,7 +23,7 @@ describe("UserController", () => {
     it("creates a user", test(async function () {
       const express = expressMock({ body: {}, baseUrl: "/api/users", path: "/" });
       this.stub(fakeUserService, "create").resolves(fakeUserModel().findOne({
-        where: { id: "id", name: "user", email: "user@domain.fr", password: "secret" },
+        where: { id: "id", givenName: "user", email: "user@domain.fr", password: "secret" },
       }));
       const setHeader = this.spy(express.res, "setHeader");
       const status = this.spy(express.res, "status");
@@ -33,7 +33,7 @@ describe("UserController", () => {
 
       expect(setHeader.calledOnceWithExactly("Location", "/api/users/id")).to.be.true;
       expect(status.calledOnceWithExactly(201)).to.be.true;
-      expect(json.calledOnceWithExactly(match({ id: "id", name: "user", email: "user@domain.fr" }))).to.be.true;
+      expect(json.calledOnceWithExactly(match({ id: "id", givenName: "user", email: "user@domain.fr" }))).to.be.true;
     }));
 
     it("fails to create a user", test(async function () {
@@ -97,14 +97,14 @@ describe("UserController", () => {
     it("updates a user", test(async function () {
       const express = expressMock({ params: {}, body: {} });
       this.stub(fakeUserService, "findById").resolves(fakeUserModel().findByPk("id"));
-      this.stub(fakeUserService, "update").resolves(fakeUserModel().findOne({ where: { id: "id", name: "user" } }));
+      this.stub(fakeUserService, "update").resolves(fakeUserModel().findOne({ where: { id: "id", givenName: "user" } }));
       const status = this.spy(express.res, "status");
       const json = this.spy(express.res, "json");
 
       await controller.update(express.req, express.res, express.next);
 
       expect(status.calledOnceWithExactly(200)).to.be.true;
-      expect(json.calledOnceWithExactly(match({ id: "id", name: "user" }))).to.be.true;
+      expect(json.calledOnceWithExactly(match({ id: "id", givenName: "user" }))).to.be.true;
     }));
 
     it("fails to update a user", test(async function () {
