@@ -31,7 +31,7 @@ describe("UserModel", () => {
       },
     ].forEach(({ state, userPassword, inputPassword, expectedValidated }) =>
       it(`detects ${state} password`, function () {
-        const user = new UserModel({ email: "", givenName: "", familyName: "", picture: "", phoneNumber: "", birthdate: "", password: userPassword });
+        const user = new UserModel({ email: "", givenName: "", familyName: "", picture: "", phoneNumber: "", birthdate: "", gender: "", password: userPassword });
 
         expect(user.verifyPassword(inputPassword)).to.equal(expectedValidated);
       }));

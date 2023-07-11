@@ -83,11 +83,12 @@ export class UserController {
         picture,
         phoneNumber,
         birthdate,
+        gender,
       } = req.body;
 
-      this._logger.info({ email, givenName, familyName, picture, phoneNumber, birthdate }, "Create operation payload");
+      this._logger.info({ email, givenName, familyName, picture, phoneNumber, birthdate, gender }, "Create operation payload");
 
-      const result = await this._service.create({ email, givenName, familyName, picture, phoneNumber, birthdate, password });
+      const result = await this._service.create({ email, givenName, familyName, picture, phoneNumber, birthdate, gender, password });
       const { password: _, ...json } = result.toJSON();
 
       /**
@@ -139,9 +140,9 @@ export class UserController {
   ): Promise<void> {
     try {
       const { id } = req.params;
-      const { email, givenName, familyName, picture, phoneNumber, birthdate, password } = req.body;
+      const { email, givenName, familyName, picture, phoneNumber, birthdate, gender, password } = req.body;
 
-      this._logger.info({ id, email, givenName, familyName, picture, phoneNumber, birthdate }, "Update operation payload");
+      this._logger.info({ id, email, givenName, familyName, picture, phoneNumber, gender, birthdate }, "Update operation payload");
 
       const user = await this._service.findById(id);
       const result = await this._service.update(user, {
@@ -151,6 +152,7 @@ export class UserController {
         picture,
         phoneNumber,
         birthdate,
+        gender,
         password,
       });
       const { password: _, ...json } = result.toJSON();

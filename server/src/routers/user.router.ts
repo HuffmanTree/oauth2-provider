@@ -25,6 +25,7 @@ export class UserRouter {
         picture: string;
         phoneNumber?: string;
         birthdate: string;
+        gender: string;
       }> = {
         type: "object",
         properties: {
@@ -60,8 +61,13 @@ export class UserRouter {
             format: "date",
             minLength: 1,
           },
+          gender: {
+            type: "string",
+            minLength: 1,
+            enum: ["female", "male"],
+          },
         },
-        required: ["email", "password", "givenName", "familyName", "picture", "birthdate"],
+        required: ["email", "password", "givenName", "familyName", "picture", "birthdate", "gender"],
       };
 
       // CreateUser
@@ -69,7 +75,7 @@ export class UserRouter {
         "/",
         middleware
           .validateRequest<
-          { email: string; password: string; givenName: string; familyName: string, picture: string; phoneNumber?: string; birthdate: string },
+          { email: string; password: string; givenName: string; familyName: string; picture: string; phoneNumber?: string; birthdate: string; gender: string },
             unknown,
             unknown
           >({ bodySchema })
@@ -96,6 +102,7 @@ export class UserRouter {
           picture: string;
           phoneNumber: string;
           birthdate: string;
+          gender: string;
         }>
       > = {
         type: "object",
@@ -138,6 +145,12 @@ export class UserRouter {
             minLength: 1,
             nullable: true,
           },
+          gender: {
+            type: "string",
+            minLength: 1,
+            enum: ["female", "male"],
+            nullable: true,
+          },
         },
       };
 
@@ -150,7 +163,7 @@ export class UserRouter {
           .bind(permissionMiddleware),
         middleware
           .validateRequest<
-          Partial<{ email: string; password: string; givenName: string; familyName: string; picture: string; phoneNumber?: string; birthdate: string }>,
+          Partial<{ email: string; password: string; givenName: string; familyName: string; picture: string; phoneNumber?: string; birthdate: string; gender: string }>,
             unknown,
             unknown
           >({ bodySchema })

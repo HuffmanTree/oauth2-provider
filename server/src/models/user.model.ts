@@ -81,6 +81,13 @@ export class UserModel extends Model<
   declare birthdate: string;
 
   /**
+   * @description Gender of the user
+   *
+   * @example "male"
+   */
+  declare gender: string;
+
+  /**
    * @description User entry creation date
    *
    * @example "2022-09-07T14:04:00Z"
@@ -164,6 +171,11 @@ export class UserModel extends Model<
         birthdate: {
           comment: "Date of birth of the user",
           type: DataTypes.DATEONLY,
+          allowNull: false,
+        },
+        gender: {
+          comment: "Geder of the user",
+          type: DataTypes.ENUM("female", "male"),
           allowNull: false,
         },
         createdAt: {

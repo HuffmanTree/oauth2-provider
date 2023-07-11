@@ -19,6 +19,7 @@ export class UserService {
     picture: string;
     phoneNumber?: string;
     birthdate: string;
+    gender: string;
     email: string;
     password: string;
   }): Promise<UserModel> {
@@ -59,6 +60,7 @@ export class UserService {
       picture: string;
       phoneNumber: string;
       birthdate: string;
+      gender: string;
       email: string;
       password: string;
     }>,
