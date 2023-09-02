@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "rm -rf dist && vue-tsc -p ./tsconfig.json && vite build"
+    "build": "rm -rf dist && vue-tsc -p ./tsconfig.json && vite build",
+    "lint": "eslint . --ext .ts"
   },
   "dependencies": {
     "vue": "^3.2.47"
