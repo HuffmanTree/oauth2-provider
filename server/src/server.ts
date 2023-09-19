@@ -130,7 +130,7 @@ export class OAuth2Server {
     this.app.use("/api/auth", authRouter.router);
     this.app.use("/api/users", userRouter.router);
     this.app.use("/api/projects", projectRouter.router);
-    this.app.use("/api/oauth2/", oauth2Router.router);
+    this.app.use("/api/oauth2", oauth2Router.router);
     this.app.use(errorMiddleware.notFound.bind(errorMiddleware));
     this.app.use(errorMiddleware.handleError.bind(errorMiddleware));
   }
