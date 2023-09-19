@@ -46,7 +46,7 @@ export class ProjectRouter {
       // CreateProject
       this.router.post(
         "/",
-        authMiddleware.authenticate.bind(authMiddleware, true),
+        authMiddleware.authenticate(true).bind(authMiddleware),
         middleware
           .validateRequest<
             { name: string; redirectURL: string; scope: Array<string> },
