@@ -7,7 +7,7 @@
     "build": "rm -rf dist && tsc -p ./tsconfig.json",
     "dev": "nodemon",
     "doc:gen": "typedoc --options typedoc.json",
-    "doc:serve": "npm run doc:gen && http-server doc",
+    "doc:serve": "npm run doc:gen && npx http-server doc",
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix",
     "test": "npx -y nyc@latest ../node_modules/.bin/_mocha 'test/**/*.test.ts' --cwd ./server"
@@ -24,7 +24,6 @@
     "@types/node": "^18.7.14",
     "@types/pg": "^8.10.0",
     "@types/sinon-test": "^2.4.3",
-    "http-server": "^14.1.1",
     "nodemon": "^2.0.19",
     "sequelize-mock": "^0.10.2",
     "sinon-test": "^3.1.5",

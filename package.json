@@ -33,7 +33,7 @@
     "@types/supertest": "^2.0.12",
     "@typescript-eslint/eslint-plugin": "^5.37.0",
     "@typescript-eslint/parser": "^5.37.0",
-    "chai": "^4.3.6",
+    "chai": "~4.4",
     "chai-arrays": "^2.2.0",
     "chai-datetime": "^1.8.0",
     "concurrently": "^8.0.1",
