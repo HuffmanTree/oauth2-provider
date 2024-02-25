@@ -1,8 +1,8 @@
 import { Sequelize } from "sequelize";
-import { Logger } from "../logger";
-import { ProjectModel } from "./project.model";
-import { RequestModel } from "./request.model";
-import { UserModel } from "./user.model";
+import { Logger } from "../logger/index.js";
+import { ProjectModel } from "./project.model.js";
+import { RequestModel } from "./request.model.js";
+import { UserModel } from "./user.model.js";
 
 /**
  * @description Namespace associated with {@link OAuth2DatabaseClient}

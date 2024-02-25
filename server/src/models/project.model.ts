@@ -8,7 +8,7 @@ import {
   Model,
   Sequelize,
 } from "sequelize";
-import { UserModel } from "./user.model";
+import { UserModel } from "./user.model.js";
 
 /**
  * @description Programmatic interface with the database project model

@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
-import { Logger } from "../logger";
-import { unknownToError } from "../utils";
+import { Logger } from "../logger/index.js";
+import { unknownToError } from "../utils/index.js";
 
 class HttpError extends Error {
   constructor(readonly status: number, readonly name: string, original: Error) {

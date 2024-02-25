@@ -1,4 +1,9 @@
 {
+  "settings": {
+    "import/resolver": {
+      "typescript": {}
+    }
+  },
   "root": true,
   "parser": "@typescript-eslint/parser",
   "plugins": ["@typescript-eslint", "import"],
@@ -18,7 +23,7 @@
       "error",
       { "ignoreRestSiblings": true }
     ],
-    "semi-spacing": ["error", { before: false, after: true }],
+    "semi-spacing": ["error", { "before": false, "after": true }],
     "semi": "off",
     "@typescript-eslint/semi": ["error", "always"],
     "quotes": "off",

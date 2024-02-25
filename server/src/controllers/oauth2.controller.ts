@@ -1,10 +1,10 @@
 import { NextFunction, Request, Response } from "express";
 import { EmptyResultError } from "sequelize";
-import { Logger } from "../logger";
-import { Forbidden } from "../middlewares/error.middleware";
-import { ProjectService } from "../services/project.service";
-import { RequestService } from "../services/request.service";
-import { UserService } from "../services/user.service";
+import { Logger } from "../logger/index.js";
+import { Forbidden } from "../middlewares/error.middleware.js";
+import { ProjectService } from "../services/project.service.js";
+import { RequestService } from "../services/request.service.js";
+import { UserService } from "../services/user.service.js";
 
 type AuthorizeRequestQuery = {
   client_id: string,

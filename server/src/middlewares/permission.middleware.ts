@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
-import { Logger } from "../logger";
-import { Forbidden } from "./error.middleware";
+import { Logger } from "../logger/index.js";
+import { Forbidden } from "./error.middleware.js";
 
 export class PermissionMiddleware {
   private _logger: Logger;

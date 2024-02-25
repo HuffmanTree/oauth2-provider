@@ -4,10 +4,10 @@ import {
   InferAttributes,
   UniqueConstraintError,
 } from "sequelize";
-import { Logger } from "../logger";
-import { Conflict, NotFound } from "../middlewares/error.middleware";
-import { ProjectModel } from "../models/project.model";
-import { ProjectService } from "../services/project.service";
+import { Logger } from "../logger/index.js";
+import { Conflict, NotFound } from "../middlewares/error.middleware.js";
+import { ProjectModel } from "../models/project.model.js";
+import { ProjectService } from "../services/project.service.js";
 
 type CreateRequestBody = Omit<
   InferAttributes<ProjectModel>,

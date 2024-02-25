@@ -1,8 +1,8 @@
 import { NextFunction, Request, Response } from "express";
-import { Logger } from "../logger";
-import { AuthService } from "../services/auth.service";
-import { unknownToError } from "../utils";
-import { Unauthorized } from "./error.middleware";
+import { Logger } from "../logger/index.js";
+import { AuthService } from "../services/auth.service.js";
+import { unknownToError } from "../utils/index.js";
+import { Unauthorized } from "./error.middleware.js";
 
 export class AuthMiddleware {
   private _service: AuthService;

@@ -1,6 +1,6 @@
 import { EmptyResultError } from "sequelize";
-import { Logger } from "../logger";
-import { UserModel } from "../models/user.model";
+import { Logger } from "../logger/index.js";
+import { UserModel } from "../models/user.model.js";
 
 export class UserService {
   private _logger: Logger;

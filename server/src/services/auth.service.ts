@@ -1,7 +1,7 @@
 import fs from "fs";
 import jwt from "jsonwebtoken";
-import { Logger } from "../logger";
-import { UserModel } from "../models/user.model";
+import { Logger } from "../logger/index.js";
+import { UserModel } from "../models/user.model.js";
 
 export class AuthService {
   private _logger: Logger;

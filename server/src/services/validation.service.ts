@@ -1,16 +1,16 @@
 import Ajv, { JSONSchemaType } from "ajv";
 import addFormat from "ajv-formats";
-import { Logger } from "../logger";
+import { Logger } from "../logger/index.js";
 
 export class ValidationService {
   private _logger: Logger;
 
-  private _ajv: Ajv;
+  private _ajv: Ajv.default;
 
   constructor() {
     this._logger = new Logger({ service: "ValidationService" });
 
-    this._ajv = addFormat(new Ajv());
+    this._ajv = addFormat.default(new Ajv.default());
   }
 
   async validate<T>(data: unknown, schema: JSONSchemaType<T>): Promise<T> {

@@ -1,7 +1,7 @@
 import { randomBytes } from "crypto";
 import { EmptyResultError } from "sequelize";
-import { Logger } from "../logger";
-import { RequestModel } from "../models/request.model";
+import { Logger } from "../logger/index.js";
+import { RequestModel } from "../models/request.model.js";
 
 export class RequestService {
   private _logger: Logger;
