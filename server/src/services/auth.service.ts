@@ -14,42 +14,32 @@ export class AuthService {
 
   private _verifyOptions?: jwt.VerifyOptions & { complete: false };
 
-  static config: Record<
-    string,
-    {
-      privateKeyFile: string;
-      publicKeyFile: string;
+  constructor() {
+    this._logger = new Logger({ service: "AuthService" });
+
+    const config: {
+      privateKey: Buffer;
+      publicKey: Buffer;
       signOptions?: jwt.SignOptions;
       verifyOptions?: jwt.VerifyOptions & { complete: false };
-    }
-  > = {
-      test: {
-        privateKeyFile: "/tmp/test.key",
-        publicKeyFile: "/tmp/test.key.pub",
-      },
-      ci: {
-        privateKeyFile: "/tmp/test.key",
-        publicKeyFile: "/tmp/test.key.pub",
-      },
-      development: {
-        privateKeyFile: `${process.cwd()}/resources/keys/rsa.key`,
-        publicKeyFile: `${process.cwd()}/resources/keys/rsa.key.pub`,
+    } = !process.env.NODE_ENV || ["ci", "env"].includes(process.env.NODE_ENV)
+      ? {
+        privateKey: Buffer.from("test.key"),
+        publicKey: Buffer.from("test.key.pub"),
+      }
+      : {
+        privateKey: fs.readFileSync(`${process.cwd()}/resources/keys/rsa.key`),
+        publicKey: fs.readFileSync(`${process.cwd()}/resources/keys/rsa.key.pub`),
         signOptions: { algorithm: "RS256" },
         verifyOptions: {
           algorithms: ["RS256"],
           complete: false,
         },
-      },
-    };
+      };
 
-  constructor() {
-    this._logger = new Logger({ service: "AuthService" });
+    this._privateKey = config.privateKey;
 
-    const config = AuthService.config[process.env.NODE_ENV || "test"];
-
-    this._privateKey = fs.readFileSync(config.privateKeyFile);
-
-    this._publicKey = fs.readFileSync(config.publicKeyFile);
+    this._publicKey = config.publicKey;
 
     this._signOptions = config.signOptions;
 
