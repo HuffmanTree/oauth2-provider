@@ -95,7 +95,7 @@ export class OAuth2Controller {
 
       const url = `${redirect_uri}?code=${result.code}`;
 
-      res.redirect(url);
+      res.redirect(302, url);
     } catch (err) {
       if (this._isForbidden(err)) {
         const original = new Error("Project not allowed to request");
