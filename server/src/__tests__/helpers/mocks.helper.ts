@@ -33,7 +33,8 @@ export function expressMock({
     redirect() { return undefined; },
     locals: locals || {},
   } as unknown as Response;
-  const next = () => undefined;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const next = (_v?: unknown) => undefined;
 
   return { req, res, next };
 }
