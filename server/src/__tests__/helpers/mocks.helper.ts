@@ -49,13 +49,3 @@ export const winstonMock = {
   debug() { return; },
   trace() { return; },
 };
-
-export const errorMock = {
-  unknownToError(err: string | Error) { return typeof err === "string" ? new Error(err) : err; },
-  BadRequest() { return new Error("Mocked Bad Request"); },
-  Unauthorized() { return new Error("Mocked Unauthorized"); },
-  Forbidden() { return new Error("Mocked Forbidden"); },
-  NotFound() { return new Error("Mocked Not Found"); },
-  Conflict() { return new Error("Mocked Conflict"); },
-  InternalServerError() { return new Error("Mocked Internal Server Error"); },
-};
