@@ -1,5 +1,7 @@
 import { NextFunction, Request, Response } from "express";
-import { Logger } from "../logger/index.js";
+import { Logger } from "js-logger";
+import { LoggerLevel } from "js-logger/levels";
+import { ConsoleTransport } from "js-logger/transports";
 import { AuthService } from "../services/auth.service.js";
 import { unknownToError } from "../utils/index.js";
 import { Unauthorized } from "./error.middleware.js";
@@ -12,7 +14,14 @@ export class AuthMiddleware {
   constructor(service: AuthService) {
     this._service = service;
 
-    this._logger = new Logger({ service: "AuthMiddleware" });
+    this._logger = new Logger({
+      includeTimestamp: true,
+      maxLevel: LoggerLevel.DEBUG,
+      metadata: {
+        service: "AuthMiddleware",
+      },
+      transports: [new ConsoleTransport()],
+    });
   }
 
   authenticate(jwt: boolean) {
@@ -25,7 +34,7 @@ export class AuthMiddleware {
       const authorization = req.headers.authorization;
 
       if (!authorization) {
-        this._logger.warn({}, "Missing 'authorization' header");
+        this._logger.warn("Missing 'authorization' header");
 
         res.setHeader("WWW-Authenticate", "Bearer missing_token");
 
@@ -43,7 +52,7 @@ export class AuthMiddleware {
 
             return next();
           } catch (err) {
-            this._logger.warn({ authorization, err }, "Authentication failed");
+            this._logger.warn("Authentication failed", { authorization, err });
 
             res.setHeader(
               "WWW-Authenticate",
@@ -54,7 +63,7 @@ export class AuthMiddleware {
           }
         }
         default: {
-          this._logger.warn({ authorization }, `Unknown scheme '${scheme}'`);
+          this._logger.warn(`Unknown scheme '${scheme}'`, { authorization });
 
           res.setHeader("WWW-Authenticate", "Bearer unknown_scheme");
 

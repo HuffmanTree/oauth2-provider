@@ -1,5 +1,7 @@
+import { Logger } from "js-logger";
+import { LoggerLevel } from "js-logger/levels";
+import { ConsoleTransport } from "js-logger/transports";
 import { EmptyResultError } from "sequelize";
-import { Logger } from "../logger/index.js";
 import { UserModel } from "../models/user.model.js";
 
 export class UserService {
@@ -10,7 +12,14 @@ export class UserService {
   constructor(model: typeof UserModel) {
     this._model = model;
 
-    this._logger = new Logger({ service: "UserService" });
+    this._logger = new Logger({
+      includeTimestamp: true,
+      maxLevel: LoggerLevel.DEBUG,
+      metadata: {
+        service: "UserService",
+      },
+      transports: [new ConsoleTransport()],
+    });
   }
 
   async create(payload: {
@@ -25,7 +34,7 @@ export class UserService {
   }): Promise<UserModel> {
     const result = await this._model.create(payload);
 
-    this._logger.info(result.toJSON(), "Created user");
+    this._logger.info("Created user", result.toJSON());
 
     return result;
   }
@@ -36,7 +45,7 @@ export class UserService {
       rejectOnEmpty: new EmptyResultError(`User not found: '${id}'`),
     });
 
-    this._logger.info(result.toJSON(), "Found user");
+    this._logger.info("Found user", result.toJSON() );
 
     return result;
   }
@@ -47,7 +56,7 @@ export class UserService {
       where: { email },
     });
 
-    this._logger.info(result.toJSON(), "Found user");
+    this._logger.info("Found user", result.toJSON());
 
     return result;
   }
@@ -67,7 +76,7 @@ export class UserService {
   ): Promise<UserModel> {
     const result = await user.update(payload);
 
-    this._logger.info(result.toJSON(), "Updated user");
+    this._logger.info("Updated user", result.toJSON());
 
     return result;
   }
@@ -75,6 +84,6 @@ export class UserService {
   async destroy(user: UserModel): Promise<void> {
     await user.destroy();
 
-    this._logger.info(user.toJSON(), "Destroyed user");
+    this._logger.info("Destroyed user", user.toJSON());
   }
 }

@@ -1,6 +1,8 @@
 import Ajv, { JSONSchemaType } from "ajv";
 import addFormat from "ajv-formats";
-import { Logger } from "../logger/index.js";
+import { Logger } from "js-logger";
+import { LoggerLevel } from "js-logger/levels";
+import { ConsoleTransport } from "js-logger/transports";
 
 export class ValidationService {
   private _logger: Logger;
@@ -8,7 +10,14 @@ export class ValidationService {
   private _ajv: Ajv.default;
 
   constructor() {
-    this._logger = new Logger({ service: "ValidationService" });
+    this._logger = new Logger({
+      includeTimestamp: true,
+      maxLevel: LoggerLevel.DEBUG,
+      metadata: {
+        service: "ValidationService",
+      },
+      transports: [new ConsoleTransport()],
+    });
 
     this._ajv = addFormat.default(new Ajv.default());
   }
@@ -21,8 +30,8 @@ export class ValidationService {
       const errors = validate.errors;
 
       this._logger.warn(
-        { data, schema, errors },
         "Data not valid against JSON schema",
+        { data, schema, errors },
       );
 
       throw new Error(this._ajv.errorsText(errors));

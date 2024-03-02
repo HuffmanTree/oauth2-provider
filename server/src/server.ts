@@ -2,11 +2,13 @@ import { Server } from "http";
 import bodyParser from "body-parser";
 import cors from "cors";
 import express, { Express } from "express";
+import { Logger } from "js-logger";
+import { LoggerLevel } from "js-logger/levels";
+import { ConsoleTransport } from "js-logger/transports";
 import { AuthController } from "./controllers/auth.controller.js";
 import { OAuth2Controller } from "./controllers/oauth2.controller.js";
 import { ProjectController } from "./controllers/project.controller.js";
 import { UserController } from "./controllers/user.controller.js";
-import { Logger } from "./logger/index.js";
 import { AuthMiddleware } from "./middlewares/auth.middleware.js";
 import { ErrorMiddleware } from "./middlewares/error.middleware.js";
 import { PermissionMiddleware } from "./middlewares/permission.middleware.js";
@@ -57,7 +59,14 @@ export class OAuth2Server {
 
     this.database = new OAuth2DatabaseClient({});
 
-    this._logger = new Logger({ service: "OAuth2Server" });
+    this._logger = new Logger({
+      includeTimestamp: true,
+      maxLevel: LoggerLevel.DEBUG,
+      metadata: {
+        service: "OAuth2Server",
+      },
+      transports: [new ConsoleTransport()],
+    });
 
     /**
      * Initializes services
@@ -119,10 +128,10 @@ export class OAuth2Server {
     );
 
     this.app.use((req, res, next) => {
-      this._logger.info({
+      this._logger.info(`${req.method.toUpperCase()} ${req.url}`, {
         headers: req.headers,
         body: req.body,
-      }, `${req.method.toUpperCase()} ${req.url}`);
+      });
 
       next();
     });
@@ -139,9 +148,7 @@ export class OAuth2Server {
     await this.database.connect();
 
     this._server = this.app.listen(this.port, this.host, () => {
-      const ctx = { host: this.host, port: this.port };
-
-      this._logger.info(ctx, "Server is listening");
+      this._logger.info("Server is listening", { host: this.host, port: this.port });
 
       process.on("SIGINT", this.stop.bind(this));
     });
@@ -151,13 +158,13 @@ export class OAuth2Server {
     await this.database.disconnect();
 
     if (!this._server) {
-      this._logger.warn({}, "Server is not running");
+      this._logger.warn("Server is not running");
 
       return;
     }
 
     this._server.close(() => {
-      this._logger.info({}, "Server is closing");
+      this._logger.info("Server is closing");
 
       if (!["ci", "test"].includes(String(process.env.NODE_ENV)))
         process.exit(0);

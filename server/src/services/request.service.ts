@@ -1,6 +1,8 @@
 import { randomBytes } from "crypto";
+import { Logger } from "js-logger";
+import { LoggerLevel } from "js-logger/levels";
+import { ConsoleTransport } from "js-logger/transports";
 import { EmptyResultError } from "sequelize";
-import { Logger } from "../logger/index.js";
 import { RequestModel } from "../models/request.model.js";
 
 export class RequestService {
@@ -11,7 +13,14 @@ export class RequestService {
   constructor(model: typeof RequestModel) {
     this._model = model;
 
-    this._logger = new Logger({ service: "RequestService" });
+    this._logger = new Logger({
+      includeTimestamp: true,
+      maxLevel: LoggerLevel.DEBUG,
+      metadata: {
+        service: "RequestService",
+      },
+      transports: [new ConsoleTransport()],
+    });
   }
 
   async create(payload: {
@@ -23,7 +32,7 @@ export class RequestService {
 
     const result = await this._model.create({ ...payload, code });
 
-    this._logger.info(result.toJSON(), "Created request");
+    this._logger.info("Created request", result.toJSON());
 
     return result;
   }
@@ -37,7 +46,7 @@ export class RequestService {
       rejectOnEmpty: new EmptyResultError(`Request not found for project: '${payload.clientId}'`),
     });
 
-    this._logger.info(result.toJSON(), "Found request");
+    this._logger.info("Found request", result.toJSON());
 
     return result;
   }
@@ -50,7 +59,7 @@ export class RequestService {
       rejectOnEmpty: new EmptyResultError("Request not found from token"),
     });
 
-    this._logger.info(result.toJSON(), "Found request");
+    this._logger.info("Found request", result.toJSON());
 
     return result;
   }
@@ -60,7 +69,7 @@ export class RequestService {
 
     const result = await request.update({ token });
 
-    this._logger.info(result.toJSON(), "Updated request");
+    this._logger.info("Updated request", result.toJSON());
 
     return result;
   }

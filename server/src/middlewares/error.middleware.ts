@@ -1,5 +1,7 @@
 import { NextFunction, Request, Response } from "express";
-import { Logger } from "../logger/index.js";
+import { Logger } from "js-logger";
+import { LoggerLevel } from "js-logger/levels";
+import { ConsoleTransport } from "js-logger/transports";
 import { unknownToError } from "../utils/index.js";
 
 class HttpError extends Error {
@@ -50,7 +52,14 @@ export class ErrorMiddleware {
   private _logger: Logger;
 
   constructor() {
-    this._logger = new Logger({ service: "ErrorMiddleware" });
+    this._logger = new Logger({
+      includeTimestamp: true,
+      maxLevel: LoggerLevel.DEBUG,
+      metadata: {
+        service: "ErrorMiddleware",
+      },
+      transports: [new ConsoleTransport()],
+    });
   }
 
   async notFound(
@@ -76,7 +85,7 @@ export class ErrorMiddleware {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _next: NextFunction,
   ): Promise<void> {
-    this._logger.error({ err }, "Raw error");
+    this._logger.error("Raw error", { err });
 
     const httpError =
       err instanceof HttpError
@@ -96,7 +105,7 @@ export class ErrorMiddleware {
 
     if (process.env.NODE_ENV === "development") json.stack = httpError.stack;
 
-    this._logger.error({ json }, "HTTP error");
+    this._logger.error("HTTP error", { json });
 
     res.status(json.status).json(json);
   }

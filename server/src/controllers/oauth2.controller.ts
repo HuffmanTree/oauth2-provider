@@ -1,6 +1,8 @@
 import { NextFunction, Request, Response } from "express";
+import { Logger } from "js-logger";
+import { LoggerLevel } from "js-logger/levels";
+import { ConsoleTransport } from "js-logger/transports";
 import { EmptyResultError } from "sequelize";
-import { Logger } from "../logger/index.js";
 import { Forbidden } from "../middlewares/error.middleware.js";
 import { ProjectService } from "../services/project.service.js";
 import { RequestService } from "../services/request.service.js";
@@ -46,7 +48,14 @@ export class OAuth2Controller {
 
     this._userService = userService;
 
-    this._logger = new Logger({ service: "OAuth2Controller" });
+    this._logger = new Logger({
+      includeTimestamp: true,
+      maxLevel: LoggerLevel.DEBUG,
+      metadata: {
+        service: "OAuth2Controlle",
+      },
+      transports: [new ConsoleTransport()],
+    });
   }
 
   /**
@@ -77,14 +86,14 @@ export class OAuth2Controller {
       const project = await this._projectService.findById(clientId);
 
       if (!project.allowRequest(redirect_uri, scope)) {
-        this._logger.debug({ project: project.id }, "Disallowed request");
+        this._logger.debug("Disallowed request", { project: project.id });
 
         throw new Error("Disallowed request");
       }
 
       this._logger.info(
-        { resourceOwner, clientId, scope },
         "Create operation payload",
+        { resourceOwner, clientId, scope },
       );
 
       const result = await this._requestService.create({
@@ -118,14 +127,14 @@ export class OAuth2Controller {
       const project = await this._projectService.findById(clientId);
 
       if (!project.verifySecret(clientSecret)) {
-        this._logger.debug({ project: project.id }, "Disallowed request");
+        this._logger.debug("Disallowed request", { project: project.id });
 
         throw new Error("Disallowed request");
       }
 
       const request = await this._requestService.findByClientIdAndCode({ clientId, code });
 
-      this._logger.info({}, "Generating a token");
+      this._logger.info("Generating a token");
 
       const result = await this._requestService.token(request);
 

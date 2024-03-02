@@ -1,6 +1,8 @@
 import fs from "fs";
+import { Logger } from "js-logger";
+import { LoggerLevel } from "js-logger/levels";
+import { ConsoleTransport } from "js-logger/transports";
 import jwt from "jsonwebtoken";
-import { Logger } from "../logger/index.js";
 import { UserModel } from "../models/user.model.js";
 
 export class AuthService {
@@ -15,7 +17,14 @@ export class AuthService {
   private _verifyOptions?: jwt.VerifyOptions & { complete: false };
 
   constructor() {
-    this._logger = new Logger({ service: "AuthService" });
+    this._logger = new Logger({
+      includeTimestamp: true,
+      maxLevel: LoggerLevel.DEBUG,
+      metadata: {
+        service: "AuthService",
+      },
+      transports: [new ConsoleTransport()],
+    });
 
     const config: {
       privateKey: Buffer;
@@ -48,7 +57,7 @@ export class AuthService {
 
   async login(user: UserModel, password: string): Promise<string> {
     if (!user.verifyPassword(password)) {
-      this._logger.debug({ user: user.id }, "Invalid password");
+      this._logger.debug("Invalid password", { user: user.id });
 
       throw new Error("Invalid password");
     }
@@ -56,7 +65,7 @@ export class AuthService {
     const { password: _, createdAt, updatedAt, ...payload } = user.toJSON();
     const token = jwt.sign(payload, this._privateKey, this._signOptions);
 
-    this._logger.info({ token }, "Built token");
+    this._logger.info("Built token", { token });
 
     return token;
   }
@@ -66,14 +75,14 @@ export class AuthService {
 
     if (typeof payload === "string") {
       this._logger.warn(
-        { payload },
         "Not expecting JWT payload to be a string",
+        { payload },
       );
 
       return payload;
     }
 
-    this._logger.info({ payload }, "Authenticated token");
+    this._logger.info("Authenticated token", { payload });
 
     return payload.id;
   }

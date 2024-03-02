@@ -1,6 +1,8 @@
 import { NextFunction, Request, Response } from "express";
+import { Logger } from "js-logger";
+import { LoggerLevel } from "js-logger/levels";
+import { ConsoleTransport } from "js-logger/transports";
 import { EmptyResultError } from "sequelize";
-import { Logger } from "../logger/index.js";
 import { Unauthorized } from "../middlewares/error.middleware.js";
 import { AuthService } from "../services/auth.service.js";
 import { UserService } from "../services/user.service.js";
@@ -21,7 +23,14 @@ export class AuthController {
 
     this._authService = authService;
 
-    this._logger = new Logger({ service: "AuthController" });
+    this._logger = new Logger({
+      includeTimestamp: true,
+      maxLevel: LoggerLevel.DEBUG,
+      metadata: {
+        service: "AuthController",
+      },
+      transports: [new ConsoleTransport()],
+    });
   }
 
   /**
@@ -47,7 +56,7 @@ export class AuthController {
     try {
       const { email, password } = req.body;
 
-      this._logger.info({ email }, "Login operation payload");
+      this._logger.info("Login operation payload", { email });
 
       const user = await this._userService.findByEmail(email);
       const token = await this._authService.login(user, password);

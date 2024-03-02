@@ -39,13 +39,3 @@ export function expressMock({
 
   return { req, res, next };
 }
-
-export const winstonMock = {
-  child() { return this; },
-  fatal() { return; },
-  error() { return; },
-  warn() { return; },
-  info() { return; },
-  debug() { return; },
-  trace() { return; },
-};

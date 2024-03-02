@@ -1,6 +1,8 @@
 import { JSONSchemaType } from "ajv";
 import { NextFunction, Request, Response } from "express";
-import { Logger } from "../logger/index.js";
+import { Logger } from "js-logger";
+import { LoggerLevel } from "js-logger/levels";
+import { ConsoleTransport } from "js-logger/transports";
 import { ValidationService } from "../services/validation.service.js";
 import { unknownToError } from "../utils/index.js";
 import { BadRequest } from "./error.middleware.js";
@@ -13,7 +15,14 @@ export class ValidationMiddleware {
   constructor(service: ValidationService) {
     this._service = service;
 
-    this._logger = new Logger({ service: "ValidationMiddleware" });
+    this._logger = new Logger({
+      includeTimestamp: true,
+      maxLevel: LoggerLevel.DEBUG,
+      metadata: {
+        service: "ValidationMiddleware",
+      },
+      transports: [new ConsoleTransport()],
+    });
   }
 
   validateRequest<BodyType, QueryType, ParamsType>({
@@ -44,7 +53,7 @@ export class ValidationMiddleware {
 
         return next();
       } catch (err) {
-        logger.warn({}, "Request validation failed");
+        logger.warn("Request validation failed");
 
         const original = unknownToError(err);
 

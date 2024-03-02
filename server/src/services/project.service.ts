@@ -1,6 +1,8 @@
 import { randomBytes } from "crypto";
+import { Logger } from "js-logger";
+import { LoggerLevel } from "js-logger/levels";
+import { ConsoleTransport } from "js-logger/transports";
 import { EmptyResultError } from "sequelize";
-import { Logger } from "../logger/index.js";
 import { ProjectModel } from "../models/project.model.js";
 
 export class ProjectService {
@@ -11,7 +13,14 @@ export class ProjectService {
   constructor(model: typeof ProjectModel) {
     this._model = model;
 
-    this._logger = new Logger({ service: "ProjectService" });
+    this._logger = new Logger({
+      includeTimestamp: true,
+      maxLevel: LoggerLevel.DEBUG,
+      metadata: {
+        service: "ProjectService",
+      },
+      transports: [new ConsoleTransport()],
+    });
   }
 
   async create(payload: {
@@ -24,7 +33,7 @@ export class ProjectService {
 
     const result = await this._model.create({ ...payload, secret });
 
-    this._logger.info(result.toJSON(), "Created project");
+    this._logger.info("Created project", result.toJSON());
 
     /**
      * We need the app secret to be displayed after creation
@@ -39,7 +48,7 @@ export class ProjectService {
       rejectOnEmpty: new EmptyResultError(`Project not found: '${id}'`),
     });
 
-    this._logger.info(result.toJSON(), "Found project");
+    this._logger.info("Found project", result.toJSON());
 
     return result;
   }

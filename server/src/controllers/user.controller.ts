@@ -1,10 +1,12 @@
 import { NextFunction, Request, Response } from "express";
+import { Logger } from "js-logger";
+import { LoggerLevel } from "js-logger/levels";
+import { ConsoleTransport } from "js-logger/transports";
 import {
   EmptyResultError,
   InferAttributes,
   UniqueConstraintError,
 } from "sequelize";
-import { Logger } from "../logger/index.js";
 import { Conflict, NotFound } from "../middlewares/error.middleware.js";
 import { UserModel } from "../models/user.model.js";
 import { UserService } from "../services/user.service.js";
@@ -40,7 +42,14 @@ export class UserController {
   constructor(service: UserService) {
     this._service = service;
 
-    this._logger = new Logger({ service: "UserController" });
+    this._logger = new Logger({
+      includeTimestamp: true,
+      maxLevel: LoggerLevel.DEBUG,
+      metadata: {
+        service: "UserControllerAuthController",
+      },
+      transports: [new ConsoleTransport()],
+    });
   }
 
   /**
@@ -86,7 +95,7 @@ export class UserController {
         gender,
       } = req.body;
 
-      this._logger.info({ email, givenName, familyName, picture, phoneNumber, birthdate, gender }, "Create operation payload");
+      this._logger.info("Create operation payload", { email, givenName, familyName, picture, phoneNumber, birthdate, gender });
 
       const result = await this._service.create({ email, givenName, familyName, picture, phoneNumber, birthdate, gender, password });
       const { password: _, ...json } = result.toJSON();
@@ -116,7 +125,7 @@ export class UserController {
     try {
       const { id } = req.params;
 
-      this._logger.info({ id }, "Find operation payload");
+      this._logger.info("Find operation payload", { id });
 
       const result = await this._service.findById(id);
       const { password: _, ...json } = result.toJSON();
@@ -142,7 +151,7 @@ export class UserController {
       const { id } = req.params;
       const { email, givenName, familyName, picture, phoneNumber, birthdate, gender, password } = req.body;
 
-      this._logger.info({ id, email, givenName, familyName, picture, phoneNumber, gender, birthdate }, "Update operation payload");
+      this._logger.info("Update operation payload", { id, email, givenName, familyName, picture, phoneNumber, gender, birthdate });
 
       const user = await this._service.findById(id);
       const result = await this._service.update(user, {
@@ -183,7 +192,7 @@ export class UserController {
     try {
       const { id } = req.params;
 
-      this._logger.info({ id }, "Destroy operation payload");
+      this._logger.info("Destroy operation payload", { id });
 
       const user = await this._service.findById(id);
       await this._service.destroy(user);

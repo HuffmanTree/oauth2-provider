@@ -1,10 +1,12 @@
 import { NextFunction, Request, Response } from "express";
+import { Logger } from "js-logger";
+import { LoggerLevel } from "js-logger/levels";
+import { ConsoleTransport } from "js-logger/transports";
 import {
   EmptyResultError,
   InferAttributes,
   UniqueConstraintError,
 } from "sequelize";
-import { Logger } from "../logger/index.js";
 import { Conflict, NotFound } from "../middlewares/error.middleware.js";
 import { ProjectModel } from "../models/project.model.js";
 import { ProjectService } from "../services/project.service.js";
@@ -28,7 +30,14 @@ export class ProjectController {
   constructor(service: ProjectService) {
     this._service = service;
 
-    this._logger = new Logger({ service: "ProjectController" });
+    this._logger = new Logger({
+      includeTimestamp: true,
+      maxLevel: LoggerLevel.DEBUG,
+      metadata: {
+        service: "ProjectController",
+      },
+      transports: [new ConsoleTransport()],
+    });
   }
 
   /**
@@ -67,8 +76,8 @@ export class ProjectController {
       const creator = res.locals.user;
 
       this._logger.info(
-        { name, redirectURL, scope, creator },
         "Create operation payload",
+        { name, redirectURL, scope, creator },
       );
 
       const result = await this._service.create({
@@ -104,7 +113,7 @@ export class ProjectController {
     try {
       const { id } = req.params;
 
-      this._logger.info({ id }, "Find operation payload");
+      this._logger.info("Find operation payload", { id });
 
       const result = await this._service.findById(id);
       const { secret: _, ...json } = result.toJSON();

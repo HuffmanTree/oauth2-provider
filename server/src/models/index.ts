@@ -1,5 +1,7 @@
+import { Logger } from "js-logger";
+import { LoggerLevel } from "js-logger/levels";
+import { ConsoleTransport } from "js-logger/transports";
 import { Sequelize } from "sequelize";
-import { Logger } from "../logger/index.js";
 import { ProjectModel } from "./project.model.js";
 import { RequestModel } from "./request.model.js";
 import { UserModel } from "./user.model.js";
@@ -120,7 +122,14 @@ export class OAuth2DatabaseClient {
 
     this._username = username || process.env.SEQUELIZE_USERNAME || "postgres";
 
-    this._logger = new Logger({ service: "OAuth2DatabaseClient" });
+    this._logger = new Logger({
+      includeTimestamp: true,
+      maxLevel: LoggerLevel.DEBUG,
+      metadata: {
+        service: "OAuth2DatabaseClient",
+      },
+      transports: [new ConsoleTransport()],
+    });
 
     this.sequelize = new Sequelize({
       database: this._database,
@@ -129,12 +138,15 @@ export class OAuth2DatabaseClient {
       password: password || process.env.SEQUELIZE_PASSWORD,
       port: this._port,
       username: this._username,
-      logging: this._logger.trace.bind(this._logger, {
-        database: this._database,
-        host: this._host,
-        port: this._port,
-        username: this._username,
-      }),
+      logging: (sql, timing) => {
+        this._logger.trace(sql, {
+          database: this._database,
+          host: this._host,
+          port: this._port,
+          username: this._username,
+          timestamp: timing,
+        });
+      },
     });
 
     UserModel.initialize(this.sequelize);
@@ -143,7 +155,7 @@ export class OAuth2DatabaseClient {
 
     RequestModel.initialize(this.sequelize);
 
-    this._logger.info({}, "Initialized models");
+    this._logger.info("Initialized models");
   }
 
   /**
@@ -167,7 +179,7 @@ export class OAuth2DatabaseClient {
       username: this._username,
     };
 
-    this._logger.info(ctx, "Client is connected to database");
+    this._logger.info("Client is connected to database", ctx);
   }
 
   /**
@@ -182,7 +194,7 @@ export class OAuth2DatabaseClient {
   async disconnect(): Promise<void> {
     await this.sequelize.close();
 
-    this._logger.info({}, "Client is closing");
+    this._logger.info("Client is closing");
   }
 
   /**
