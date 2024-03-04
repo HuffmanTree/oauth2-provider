@@ -30,9 +30,8 @@ export function expressMock({
     json() { return this; },
     status() { return this; },
     setHeader() { return this; },
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    redirect(_s?: number,_v?: string) { return undefined; },
     locals: locals || {},
+    send() { return this; },
   } as unknown as Response;
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const next = (_v?: unknown) => undefined;

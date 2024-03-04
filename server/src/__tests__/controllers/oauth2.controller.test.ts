@@ -21,12 +21,11 @@ describe("OAuth2Controller", () => {
       const fakeRequestServiceMock = mock(fakeRequestService);
       fakeProjectServiceMock.expects("findById").resolves(project);
       fakeRequestServiceMock.expects("create").resolves(fakeRequestModel().findOne({ where: { code: "the_code"} }));
-      const redirect = spy(express.res, "redirect");
+      const send = spy(express.res, "send");
 
       await controller.authorize(express.req, express.res, express.next);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      expect(redirect.calledOnceWithExactly(302 as any, "http://localhost:8080?code=the_code" as any)).to.be.true;
+      expect(send.calledOnceWithExactly("http://localhost:8080?code=the_code")).to.be.true;
       fakeProjectServiceMock.restore();
       fakeRequestServiceMock.restore();
     });
