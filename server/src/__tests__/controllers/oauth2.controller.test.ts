@@ -83,7 +83,7 @@ describe("OAuth2Controller", () => {
       await controller.token(express.req, express.res, express.next);
 
       expect(status.calledOnceWithExactly(200)).to.be.true;
-      expect(json.calledOnceWithExactly({ access_token: "token", token_type: "Bearer" })).to.be.true;
+      expect(json.calledOnceWithExactly({ access_token: "token", token_type: "Bearer", expires_in: 3600 })).to.be.true;
       fakeProjectServiceMock.restore();
       fakeRequestServiceMock.restore();
     });

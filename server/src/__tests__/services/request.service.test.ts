@@ -1,4 +1,5 @@
 import { expect } from "chai";
+import { Sequelize } from "sequelize";
 import { match, spy } from "sinon";
 import { RequestService } from "../../services/request.service.js";
 import { fakeRequestModel } from "../helpers/models.helper.js";
@@ -36,7 +37,10 @@ describe("RequestService", () => {
       const result = await service.token(request);
 
       // RegExp for Base64
-      expect(update.calledOnceWithExactly({ token: match(/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/) })).to.be.true;
+      expect(update.calledOnceWithExactly({
+        token: match(/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/),
+        expiredAt: Sequelize.literal("now() + interval '1' hour"),
+      })).to.be.true;
       expect(result)
         .to.include({ id: "id" })
         .and.to.have.property("token")

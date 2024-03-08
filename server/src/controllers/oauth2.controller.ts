@@ -139,6 +139,7 @@ export class OAuth2Controller {
       const json = {
         access_token: result.token,
         token_type: "Bearer",
+        expires_in: 3600,
       };
 
       res.status(200).json(json);

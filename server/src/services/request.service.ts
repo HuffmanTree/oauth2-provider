@@ -2,7 +2,7 @@ import { randomBytes } from "crypto";
 import { Logger } from "js-logger";
 import { LoggerLevel } from "js-logger/levels";
 import { ConsoleTransport } from "js-logger/transports";
-import { EmptyResultError } from "sequelize";
+import { EmptyResultError, Sequelize, Op } from "sequelize";
 import { RequestModel } from "../models/request.model.js";
 
 export class RequestService {
@@ -55,7 +55,12 @@ export class RequestService {
     token: string
   }): Promise<RequestModel> {
     const result = await this._model.findOne({
-      where: payload,
+      where: {
+        ...payload,
+        expiredAt: {
+          [Op.gt]: Sequelize.fn("now"),
+        },
+      },
       rejectOnEmpty: new EmptyResultError("Request not found from token"),
     });
 
@@ -66,8 +71,9 @@ export class RequestService {
 
   async token(request: RequestModel): Promise<RequestModel> {
     const token = randomBytes(64).toString("base64");
+    const expiredAt = Sequelize.literal("now() + interval '1' hour");
 
-    const result = await request.update({ token });
+    const result = await request.update({ token, expiredAt });
 
     this._logger.info("Updated request", result.toJSON());
 
