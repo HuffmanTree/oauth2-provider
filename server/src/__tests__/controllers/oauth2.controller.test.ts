@@ -4,13 +4,13 @@ import { match, spy, mock } from "sinon";
 import { OAuth2Controller } from "../../controllers/oauth2.controller.js";
 import { expressMock } from "../helpers/mocks.helper.js";
 import { fakeProjectModel, fakeRequestModel, fakeUserModel } from "../helpers/models.helper.js";
-import { fakeProjectService, fakeRequestService, fakeUserService } from "../helpers/services.helper.js";
+import { fakeAuthService, fakeProjectService, fakeRequestService, fakeUserService } from "../helpers/services.helper.js";
 
 describe("OAuth2Controller", () => {
   let controller: OAuth2Controller;
 
   before(function () {
-    controller = new OAuth2Controller(fakeProjectService, fakeRequestService, fakeUserService);
+    controller = new OAuth2Controller(fakeProjectService, fakeRequestService, fakeUserService, fakeAuthService);
   });
 
   describe("authorize", () => {
@@ -75,7 +75,7 @@ describe("OAuth2Controller", () => {
       const fakeProjectServiceMock = mock(fakeProjectService);
       const fakeRequestServiceMock = mock(fakeRequestService);
       fakeProjectServiceMock.expects("findById").resolves(project);
-      fakeRequestServiceMock.expects("findByClientIdAndCode").resolves(fakeRequestModel().findOne());
+      fakeRequestServiceMock.expects("findByClientIdAndCode").resolves(fakeRequestModel().findOne({ where: { scope: ["given_name"] } }));
       fakeRequestServiceMock.expects("token").resolves(fakeRequestModel().findOne({ where: { token: "token" } }));
       const status = spy(express.res, "status");
       const json = spy(express.res, "json");
@@ -135,7 +135,7 @@ describe("OAuth2Controller", () => {
       const express = expressMock();
       const fakeRequestServiceMock = mock(fakeRequestService);
       const fakeUserServiceMock = mock(fakeUserService);
-      fakeRequestServiceMock.expects("findByToken").resolves(fakeRequestModel().findOne({ where: { token: "token" } }));
+      fakeRequestServiceMock.expects("findByToken").resolves(fakeRequestModel().findOne({ where: { token: "token", scope: ["given_name"] } }));
       fakeUserServiceMock.expects("findById").resolves(fakeUserModel().findByPk("id"));
       const status = spy(express.res, "status");
       const json = spy(express.res, "json");

@@ -55,8 +55,8 @@ export class AuthService {
     this._verifyOptions = config.verifyOptions;
   }
 
-  async login(user: UserModel, password: string): Promise<string> {
-    if (!user.verifyPassword(password)) {
+  async login(user: UserModel, password: string | { skipPasswordVerification: true }): Promise<string> {
+    if (typeof password === "string" && !user.verifyPassword(password)) {
       this._logger.debug("Invalid password", { user: user.id });
 
       throw new Error("Invalid password");

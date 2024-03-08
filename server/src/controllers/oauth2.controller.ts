@@ -4,6 +4,7 @@ import { LoggerLevel } from "js-logger/levels";
 import { ConsoleTransport } from "js-logger/transports";
 import { EmptyResultError } from "sequelize";
 import { Forbidden } from "../middlewares/error.middleware.js";
+import { AuthService } from "../services/auth.service.js";
 import { ProjectService } from "../services/project.service.js";
 import { RequestService } from "../services/request.service.js";
 import { UserService } from "../services/user.service.js";
@@ -35,6 +36,7 @@ export class OAuth2Controller {
     private readonly _projectService: ProjectService,
     private readonly _requestService: RequestService,
     private readonly _userService: UserService,
+    private readonly _authService: AuthService,
   ) {
     this._logger = new Logger({
       includeTimestamp: true,
@@ -130,11 +132,22 @@ export class OAuth2Controller {
 
       const result = await this._requestService.token(request);
 
-      const json = {
+      const json: {
+        access_token: string | null,
+        token_type: string,
+        expires_in: number,
+        id_token?: string,
+      } = {
         access_token: result.token,
         token_type: "Bearer",
         expires_in: 3600,
       };
+
+      if (request.scope.includes("openid")) {
+        const user = await this._userService.findById(request.resourceOwner, request.scope.filter(scope => scope !== "openid"));
+
+        json.id_token = await this._authService.login(user, { skipPasswordVerification: true });
+      }
 
       res.status(200).json(json);
     } catch (err) {
@@ -156,7 +169,7 @@ export class OAuth2Controller {
     try {
       const token = res.locals.token;
       const request = await this._requestService.findByToken({ token });
-      const user = await this._userService.findById(request.resourceOwner, request.scope);
+      const user = await this._userService.findById(request.resourceOwner, request.scope.filter(scope => scope !== "openid"));
 
       const json = user.toJSON();
 

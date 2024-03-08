@@ -90,7 +90,7 @@ export class OAuth2Server {
 
     const projectController = new ProjectController(projectService);
 
-    const oauth2Controller = new OAuth2Controller(projectService, requestService, userService);
+    const oauth2Controller = new OAuth2Controller(projectService, requestService, userService, authService);
 
     /**
      * Initializes middlewares
