@@ -37,11 +37,7 @@ type DestroyResponseBody = { deleted: string };
 export class UserController {
   private _logger: Logger;
 
-  private _service: UserService;
-
-  constructor(service: UserService) {
-    this._service = service;
-
+  constructor(private readonly _service: UserService) {
     this._logger = new Logger({
       includeTimestamp: true,
       maxLevel: LoggerLevel.DEBUG,

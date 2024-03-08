@@ -8,11 +8,7 @@ import { ProjectModel } from "../models/project.model.js";
 export class ProjectService {
   private _logger: Logger;
 
-  private _model: typeof ProjectModel;
-
-  constructor(model: typeof ProjectModel) {
-    this._model = model;
-
+  constructor(private readonly _model: typeof ProjectModel) {
     this._logger = new Logger({
       includeTimestamp: true,
       maxLevel: LoggerLevel.DEBUG,

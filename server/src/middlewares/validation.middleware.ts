@@ -8,13 +8,9 @@ import { unknownToError } from "../utils/index.js";
 import { BadRequest } from "./error.middleware.js";
 
 export class ValidationMiddleware {
-  private _service: ValidationService;
-
   private _logger: Logger;
 
-  constructor(service: ValidationService) {
-    this._service = service;
-
+  constructor(private readonly _service: ValidationService) {
     this._logger = new Logger({
       includeTimestamp: true,
       maxLevel: LoggerLevel.DEBUG,

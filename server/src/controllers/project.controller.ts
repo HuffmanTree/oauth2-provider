@@ -25,11 +25,7 @@ type FindResponseBody = Omit<InferAttributes<ProjectModel>, "secret">;
 export class ProjectController {
   private _logger: Logger;
 
-  private _service: ProjectService;
-
-  constructor(service: ProjectService) {
-    this._service = service;
-
+  constructor(private readonly _service: ProjectService) {
     this._logger = new Logger({
       includeTimestamp: true,
       maxLevel: LoggerLevel.DEBUG,

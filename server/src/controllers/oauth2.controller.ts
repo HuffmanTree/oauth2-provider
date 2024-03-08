@@ -31,28 +31,16 @@ type TokenResponseBody = {
 export class OAuth2Controller {
   private _logger: Logger;
 
-  private _projectService: ProjectService;
-
-  private _requestService: RequestService;
-
-  private _userService: UserService;
-
   constructor(
-    projectService: ProjectService,
-    requestService: RequestService,
-    userService: UserService,
+    private readonly _projectService: ProjectService,
+    private readonly _requestService: RequestService,
+    private readonly _userService: UserService,
   ) {
-    this._projectService = projectService;
-
-    this._requestService = requestService;
-
-    this._userService = userService;
-
     this._logger = new Logger({
       includeTimestamp: true,
       maxLevel: LoggerLevel.DEBUG,
       metadata: {
-        service: "OAuth2Controlle",
+        service: "OAuth2Controller",
       },
       transports: [new ConsoleTransport()],
     });

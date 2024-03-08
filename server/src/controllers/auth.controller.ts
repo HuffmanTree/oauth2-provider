@@ -14,15 +14,7 @@ type LoginResponseBody = { message: string; token: string };
 export class AuthController {
   private _logger: Logger;
 
-  private _authService: AuthService;
-
-  private _userService: UserService;
-
-  constructor(userService: UserService, authService: AuthService) {
-    this._userService = userService;
-
-    this._authService = authService;
-
+  constructor(private readonly _userService: UserService, private readonly _authService: AuthService) {
     this._logger = new Logger({
       includeTimestamp: true,
       maxLevel: LoggerLevel.DEBUG,

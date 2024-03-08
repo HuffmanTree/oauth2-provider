@@ -7,13 +7,9 @@ import { unknownToError } from "../utils/index.js";
 import { Unauthorized } from "./error.middleware.js";
 
 export class AuthMiddleware {
-  private _service: AuthService;
-
   private _logger: Logger;
 
-  constructor(service: AuthService) {
-    this._service = service;
-
+  constructor(private readonly _service: AuthService) {
     this._logger = new Logger({
       includeTimestamp: true,
       maxLevel: LoggerLevel.DEBUG,

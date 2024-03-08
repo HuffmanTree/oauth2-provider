@@ -7,11 +7,7 @@ import { UserModel } from "../models/user.model.js";
 export class UserService {
   private _logger: Logger;
 
-  private _model: typeof UserModel;
-
-  constructor(model: typeof UserModel) {
-    this._model = model;
-
+  constructor(private readonly _model: typeof UserModel) {
     this._logger = new Logger({
       includeTimestamp: true,
       maxLevel: LoggerLevel.DEBUG,

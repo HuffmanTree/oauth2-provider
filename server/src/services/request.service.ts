@@ -8,11 +8,7 @@ import { RequestModel } from "../models/request.model.js";
 export class RequestService {
   private _logger: Logger;
 
-  private _model: typeof RequestModel;
-
-  constructor(model: typeof RequestModel) {
-    this._model = model;
-
+  constructor(private readonly _model: typeof RequestModel) {
     this._logger = new Logger({
       includeTimestamp: true,
       maxLevel: LoggerLevel.DEBUG,
