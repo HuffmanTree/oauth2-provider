@@ -132,6 +132,12 @@ export class OAuth2Controller {
 
       const request = await this._requestService.findByClientIdAndCode({ clientId, code });
 
+      if (request.token) {
+        this._logger.debug("Disallowed request", { project: project.id });
+
+        throw new Error("Disallowed request");
+      }
+
       this._logger.info("Generating a token");
 
       const result = await this._requestService.token(request);

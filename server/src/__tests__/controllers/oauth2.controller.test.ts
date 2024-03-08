@@ -88,6 +88,22 @@ describe("OAuth2Controller", () => {
       fakeRequestServiceMock.restore();
     });
 
+    it("fails to compute an oauth2 access token from a previously used token", async function () {
+      const express = expressMock({ body: {} });
+      const project = await fakeProjectModel({ verifySecretReturnedValue: true }).findOne();
+      const fakeProjectServiceMock = mock(fakeProjectService);
+      const fakeRequestServiceMock = mock(fakeRequestService);
+      fakeProjectServiceMock.expects("findById").resolves(project);
+      fakeRequestServiceMock.expects("findByClientIdAndCode").resolves(fakeRequestModel().findOne({ where: { token: "token" } }));
+      const next = spy(express, "next");
+
+      await controller.token(express.req, express.res, express.next);
+
+      expect(next.calledOnceWithExactly(match.instanceOf(Error))).to.be.true;
+      fakeProjectServiceMock.restore();
+      fakeRequestServiceMock.restore();
+    });
+
     it("fails to compute an oauth2 access token with a wrong secret", async function () {
       const express = expressMock({ body: {} });
       const project = await fakeProjectModel({ verifySecretReturnedValue: false }).findOne();
