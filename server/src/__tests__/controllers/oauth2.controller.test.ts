@@ -21,11 +21,11 @@ describe("OAuth2Controller", () => {
       const fakeRequestServiceMock = mock(fakeRequestService);
       fakeProjectServiceMock.expects("findById").resolves(project);
       fakeRequestServiceMock.expects("create").resolves(fakeRequestModel().findOne({ where: { code: "the_code"} }));
-      const send = spy(express.res, "send");
+      const redirect = spy(express.res, "redirect");
 
       await controller.authorize(express.req, express.res, express.next);
 
-      expect(send.calledOnceWithExactly("http://localhost:8080?code=the_code")).to.be.true;
+      expect(redirect.calledOnceWith("http://localhost:8080?code=the_code")).to.be.true;
       fakeProjectServiceMock.restore();
       fakeRequestServiceMock.restore();
     });

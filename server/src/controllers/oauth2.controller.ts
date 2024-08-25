@@ -92,7 +92,7 @@ export class OAuth2Controller {
         scope,
       });
 
-      res.send(`${redirect_uri}?code=${result.code}`);
+      res.redirect(`${redirect_uri}?code=${result.code}`);
     } catch (err) {
       if (this._isForbidden(err)) {
         const original = new Error("Project not allowed to request");

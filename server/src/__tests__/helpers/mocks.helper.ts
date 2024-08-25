@@ -32,6 +32,7 @@ export function expressMock({
     setHeader() { return this; },
     locals: locals || {},
     send() { return this; },
+    redirect() { return this; },
   } as unknown as Response;
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const next = (_v?: unknown) => undefined;
