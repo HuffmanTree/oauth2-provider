@@ -27,8 +27,8 @@ describe("ProjectRouter", () => {
   ].forEach(({ method, path }) =>
     it(`ensures ${method} ${path} is present`, function () {
       const route = router.router.stack.find((s) => {
-        if (s.route.path !== path) return false;
-        if (!s.route.methods[method.toLowerCase()]) return false;
+        if (!s.route || s.route.path !== path) return false;
+        if (!(method.toLowerCase() in s.route)) return false;
 
         return true;
       });
