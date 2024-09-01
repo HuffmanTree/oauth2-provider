@@ -25,6 +25,7 @@
     ],
     "semi-spacing": ["error", { "before": false, "after": true }],
     "semi": "off",
+    "eqeqeq": ["error", "always"],
     "@typescript-eslint/semi": ["error", "always"],
     "quotes": "off",
     "@typescript-eslint/quotes": ["error", "double"],
