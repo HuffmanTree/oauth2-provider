@@ -15,6 +15,12 @@ const routes: RouteRecordRaw[] = [{
   path: "/consent",
   name: "Consent",
   component: () => import("../views/Consent.vue"),
+}, {
+  beforeEnter: mustLogin,
+  path: "/completed/:projectName",
+  name: "Completed",
+  component: () => import("../views/Completed.vue"),
+  props: true,
 }];
 
 export default createRouter({

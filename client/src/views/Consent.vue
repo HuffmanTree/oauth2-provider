@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { ref } from "vue";
 import { getProject, authorize as consent } from "../http/client.http";
 
@@ -13,6 +13,7 @@ const scopeMap = {
   
 };
 const route = useRoute();
+const router = useRouter();
 
 function getQueryParam(q: string) {
   const param = Array.isArray(route.query[q]) ? route.query[q][0] : route.query[q];
@@ -35,6 +36,7 @@ async function authorize() {
     redirectUri: redirectUri.value,
     scope: scope.value,
   });
+  router.push({ name: "Completed", params: { projectName: project.value.name } });
 }
 </script>
 
