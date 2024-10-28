@@ -42,14 +42,16 @@ async function authorize() {
 
 <template>
   <div id="consent">
-    <h1>Consent required</h1>
-    <p>Application '{{ project.name }}' requests your authorization to access the following properties</p>
-    <ul>
-      <li v-for="s in scope">{{ scopeMap[s] }}</li>
-    </ul>
-    <form @submit.prevent="authorize">
-      <button type="submit">Consent</button>
-    </form>
+    <h1 class="center">Consent required</h1>
+    <div class="wrapper block">
+      <p>Application '{{ project.name }}' requests your authorization to access the following properties</p>
+      <ul>
+        <li v-for="s in scope">{{ scopeMap[s] }}</li>
+      </ul>
+      <form @submit.prevent="authorize">
+        <button type="submit">Consent</button>
+      </form>
+    </div>
   </div>
 </template>
 

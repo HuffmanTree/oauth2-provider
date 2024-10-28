@@ -9,3 +9,16 @@ button {
 .center {
   text-align: center;
 }
+
+.wrapper {
+  width: 50%;
+  margin: auto;
+  padding: 32px;
+  border: solid 2px;
+  border-radius: 30px;
+}
+
+input[type=password],
+input[type=email] {
+  margin: 8px 0;
+}

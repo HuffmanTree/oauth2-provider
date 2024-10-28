@@ -27,14 +27,16 @@ async function signIn() {
 
 <template>
   <div id="login">
-    <h1>Login</h1>
-    <form @submit.prevent="signIn">
-      <label for="login-email">Email:</label>
-      <input class="block" id="login-email" type="email" v-model="email" required/>
-      <label for="login-password">Password:</label>
-      <input class="block" id="login-password" type="password" v-model="password" required/>
-      <button type="submit">Login</button>
-    </form>
+    <h1 class="center">Login</h1>
+    <div class="wrapper block">
+      <form @submit.prevent="signIn">
+        <label for="login-email">Email:</label>
+        <input class="block" id="login-email" type="email" v-model="email" required/>
+        <label for="login-password">Password:</label>
+        <input class="block" id="login-password" type="password" v-model="password" required/>
+        <button type="submit">Login</button>
+      </form>
+    </div>
   </div>
 </template>
 
