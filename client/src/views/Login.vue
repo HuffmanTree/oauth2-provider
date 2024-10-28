@@ -9,10 +9,13 @@ const route = useRoute();
 const router = useRouter();
 
 async function signIn() {
-  const { token } = await login({
+  const { token, message } = await login({
     email: email.value,
     password: password.value,
   });
+
+  if (!token) return alert(message);
+
   localStorage.setItem("token", token);
   const { redirect } = route.query;
 
@@ -27,9 +30,9 @@ async function signIn() {
     <h1>Login</h1>
     <form @submit.prevent="signIn">
       <label for="login-email">Email:</label>
-      <input class="block" id="login-email" type="email" v-model="email" />
+      <input class="block" id="login-email" type="email" v-model="email" required/>
       <label for="login-password">Password:</label>
-      <input class="block" id="login-password" type="password" v-model="password" />
+      <input class="block" id="login-password" type="password" v-model="password" required/>
       <button type="submit">Login</button>
     </form>
   </div>
