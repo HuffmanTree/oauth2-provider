@@ -21,7 +21,14 @@ Spawn the database with `docker-compose`
 docker compose -f server/docker/docker-compose.yml up db
 ```
 
-Run the front and the back of this monorepo with one command
+Generate RSA keypair to sign and verify authentication tokens
+
+```sh
+cd server
+./regenerate-keys.sh
+```
+
+Run the front and the back of this monorepo with one command from the root folder
 
 ```sh
 npm run dev
