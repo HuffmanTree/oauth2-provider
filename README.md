@@ -8,8 +8,9 @@ Clone the project and install dependencies
 
 ```sh
 git clone git@github.com:HuffmanTree/oauth2-provider.git
+cd oauth2-provider
 nvm i # to make sure the correct version of NodeJS is installed
-npm i
+npm i && npm run build
 ```
 
 ## Run development environment

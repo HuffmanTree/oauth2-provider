@@ -43,8 +43,7 @@
     "sinon": "^19.0.2",
     "supertest": "^6.3.0",
     "typedoc": "^0.26.6",
-    "typescript": "^5.4.5",
-    "typescript-eslint-language-service": "^5.0.0"
+    "typescript": "^5.4.5"
   },
   "dependencies": {
     "js-logger": "HuffmanTree/js-logger"
