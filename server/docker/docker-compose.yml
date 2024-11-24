@@ -4,15 +4,9 @@ services:
     image: postgres:14.1-alpine
     restart: always
     container_name: oauth2_db
-    hostname: postgres
     environment:
       - POSTGRES_DB=oauth2
-      - POSTGRES_USER=francois
+      - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=secret
     ports:
       - "127.0.0.1:5432:5432"
-    volumes:
-      - db:/var/lib/postgresql/data
-volumes:
-  db:
-    driver: local

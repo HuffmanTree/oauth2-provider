@@ -1,9 +1,5 @@
 # IDE
 *~
-.log
-
-# Local env
-.env
 
 # Built
 dist/
