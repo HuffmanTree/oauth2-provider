@@ -6,7 +6,7 @@ const mustLogin: NavigationGuard = function (from, _, next) {
   return next({ name: "Login", query: { redirect: from.fullPath } });
 };
 
-const routes: RouteRecordRaw[] = [{
+const routes: Array<RouteRecordRaw> = [{
   path: "/login",
   name: "Login",
   component: () => import("../views/Login.vue"),

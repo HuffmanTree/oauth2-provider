@@ -174,7 +174,7 @@ export class UserModel extends Model<
           allowNull: false,
         },
         gender: {
-          comment: "Geder of the user",
+          comment: "Gender of the user",
           type: DataTypes.ENUM("female", "male"),
           allowNull: false,
         },
