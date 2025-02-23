@@ -39,7 +39,7 @@ export class AuthService {
       : {
         privateKey: fs.readFileSync(`${process.cwd()}/resources/keys/rsa.key`),
         publicKey: fs.readFileSync(`${process.cwd()}/resources/keys/rsa.key.pub`),
-        signOptions: { algorithm: "RS256" },
+        signOptions: { algorithm: "RS256", expiresIn: "1h" },
         verifyOptions: {
           algorithms: ["RS256"],
           complete: false,
@@ -62,8 +62,11 @@ export class AuthService {
       throw new Error("Invalid password");
     }
 
-    const { password: _, createdAt, updatedAt, ...payload } = user.toJSON();
-    const token = jwt.sign(payload, this._privateKey, this._signOptions);
+    const { password: _, id, createdAt, updatedAt, ...payload } = user.toJSON();
+    const token = jwt.sign(payload, this._privateKey, {
+      ...this._signOptions,
+      subject: user.id,
+    });
 
     this._logger.info("Built token", { token });
 
@@ -82,8 +85,12 @@ export class AuthService {
       return payload;
     }
 
+    if (!payload.sub) {
+      throw new Error("Missing 'sub' claim in token");
+    }
+
     this._logger.info("Authenticated token", { payload });
 
-    return payload.id;
+    return payload.sub;
   }
 }

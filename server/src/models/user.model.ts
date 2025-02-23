@@ -32,9 +32,9 @@ export enum Claim {
   PICTURE = "picture",
 }
 
-export function scopeToClaim(scope: Scope): Array<Claim | string | [string, Claim]> {
+export function scopeToClaim(scope: Scope): Array<Claim | string> {
   switch (scope) {
-    case Scope.OPENID: return ["id", ["id", Claim.SUB]];
+    case Scope.OPENID: return ["id"];
     case Scope.GENDER: return [Claim.GENDER];
     case Scope.BIRTHDATE: return [Claim.BIRTHDATE];
     case Scope.GIVEN_NAME: return [Claim.GIVEN_NAME];

@@ -172,7 +172,7 @@ export class OAuth2Controller {
       const request = await this._requestService.findByToken({ token });
       const user = await this._userService.findById(request.resourceOwner, request.scope.flatMap(scopeToClaim));
 
-      const json = user.toJSON();
+      const { id, ...json } = { ...user.toJSON(), sub: user.id };
 
       res.status(200).json(json);
     } catch (err) {

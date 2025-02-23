@@ -41,7 +41,7 @@ describe("AuthService", () => {
   describe("verify", () => {
     it("verifies a token", async function () {
       const jwtMock = mock(jwt);
-      jwtMock.expects("verify").once().returns({ id: "userId" });
+      jwtMock.expects("verify").once().returns({ sub: "userId" });
 
       const result = await service.verify("jwt");
 

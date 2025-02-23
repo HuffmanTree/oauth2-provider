@@ -143,7 +143,7 @@ describe("OAuth2Controller", () => {
       await controller.info(express.req, express.res, express.next);
 
       expect(status.calledOnceWithExactly(200)).to.be.true;
-      expect(json.calledOnceWithExactly(match({ id: "id" }))).to.be.true;
+      expect(json.calledOnceWithExactly(match({ sub: "id" }))).to.be.true;
       fakeRequestServiceMock.restore();
       fakeUserServiceMock.restore();
     });
