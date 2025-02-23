@@ -3,6 +3,7 @@ import { Router } from "express";
 import { ProjectController } from "../controllers/project.controller.js";
 import { AuthMiddleware } from "../middlewares/auth.middleware.js";
 import { ValidationMiddleware } from "../middlewares/validation.middleware.js";
+import { Scope } from "../models/user.model.js";
 
 export class ProjectRouter {
   readonly router: Router;
@@ -18,7 +19,7 @@ export class ProjectRouter {
       const bodySchema: JSONSchemaType<{
         name: string;
         redirectURL: string;
-        scope: Array<string>;
+        scope: Array<Scope>;
       }> = {
         type: "object",
         properties: {
@@ -35,6 +36,7 @@ export class ProjectRouter {
             type: "array",
             minItems: 1,
             items: {
+              enum: Object.values(Scope),
               type: "string",
               minLength: 1,
             },
@@ -49,7 +51,7 @@ export class ProjectRouter {
         authMiddleware.authenticate(true).bind(authMiddleware),
         middleware
           .validateRequest<
-            { name: string; redirectURL: string; scope: Array<string> },
+            { name: string; redirectURL: string; scope: Array<Scope> },
             unknown,
             unknown
           >({ bodySchema })

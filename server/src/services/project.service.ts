@@ -4,6 +4,7 @@ import { LoggerLevel } from "js-logger/levels";
 import { ConsoleTransport } from "js-logger/transports";
 import { EmptyResultError } from "sequelize";
 import { ProjectModel } from "../models/project.model.js";
+import { Scope } from "../models/user.model.js";
 
 export class ProjectService {
   private _logger: Logger;
@@ -22,7 +23,7 @@ export class ProjectService {
   async create(payload: {
     name: string;
     redirectURL: string;
-    scope: Array<string>;
+    scope: Array<Scope>;
     creator: string;
   }): Promise<ProjectModel> {
     const secret = randomBytes(32).toString("hex");

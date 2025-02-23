@@ -8,7 +8,7 @@ import {
   Sequelize,
 } from "sequelize";
 import { ProjectModel } from "./project.model.js";
-import { UserModel } from "./user.model.js";
+import { Scope, UserModel } from "./user.model.js";
 
 /**
  * @description Programmatic interface with the database request model
@@ -52,7 +52,7 @@ export class RequestModel extends Model<
    *
    * @example ["email", "family_name"]
    */
-  declare scope: Array<string>;
+  declare scope: Array<Scope>;
 
   /**
    * @description Temporary authorization code of the request
@@ -137,7 +137,7 @@ export class RequestModel extends Model<
         },
         scope: {
           comment: "Scope of the request",
-          type: DataTypes.ARRAY(DataTypes.STRING),
+          type: DataTypes.ARRAY(DataTypes.ENUM(...Object.values(Scope))),
           allowNull: false,
         },
         code: {

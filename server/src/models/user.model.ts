@@ -8,6 +8,20 @@ import {
   Sequelize,
 } from "sequelize";
 
+export enum Scope {
+  OPENID = "openid",
+  GENDER = "gender",
+  BIRTHDATE = "birthdate",
+  GIVEN_NAME = "given_name",
+  FAMILY_NAME = "family_name",
+  EMAIL = "email",
+  PROFILE = "profile",
+}
+
+export function isScope(s: string): s is Scope {
+  return Object.values(Scope).includes(s as Scope);
+}
+
 /**
  * @description Programmatic interface with the database user model
  *

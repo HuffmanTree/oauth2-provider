@@ -1,5 +1,6 @@
 import { expect } from "chai";
 import { match, spy } from "sinon";
+import { Scope } from "../../models/user.model.js";
 import { ProjectService } from "../../services/project.service.js";
 import { fakeProjectModel } from "../helpers/models.helper.js";
 
@@ -15,7 +16,7 @@ describe("ProjectService", () => {
     it("creates a project", async function () {
       const create = spy(ProjectModel, "create");
 
-      const result = await service.create({ name: "My project", redirectURL: "http://domain.fr", scope: ["family_name", "email"], creator: "userId" });
+      const result = await service.create({ name: "My project", redirectURL: "http://domain.fr", scope: [Scope.FAMILY_NAME, Scope.EMAIL], creator: "userId" });
 
       expect(create.calledOnceWithExactly({ name: "My project", redirectURL: "http://domain.fr", scope: ["family_name", "email"], creator: "userId", secret: match.string })).to.be.true;
       expect(result)

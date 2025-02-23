@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { Sequelize } from "sequelize";
 import { ProjectModel } from "../../models/project.model.js";
-import { UserModel } from "../../models/user.model.js";
+import { Scope, UserModel } from "../../models/user.model.js";
 
 describe("ProjectModel", () => {
   const sequelize = new Sequelize({
@@ -45,25 +45,25 @@ describe("ProjectModel", () => {
       {
         state: "a disallowed (invalid 'redirectURL')",
         projectRedirectURL: "this_is_a_redirect_url",
-        projectScope: ["field1", "field2"],
+        projectScope: [Scope.GIVEN_NAME, Scope.FAMILY_NAME],
         inputRedirectURL: "this_is_another_redirect_url",
-        inputScope: ["field1", "field2"],
+        inputScope: [Scope.GIVEN_NAME, Scope.FAMILY_NAME],
         expectedValidated: false,
       },
       {
         state: "a disallowed (invalid 'scope')",
         projectRedirectURL: "this_is_a_redirect_url",
-        projectScope: ["field1", "field2"],
+        projectScope: [Scope.GIVEN_NAME, Scope.FAMILY_NAME],
         inputRedirectURL: "this_is_a_redirect_url",
-        inputScope: ["field1", "field3"],
+        inputScope: [Scope.GIVEN_NAME, Scope.GENDER],
         expectedValidated: false,
       },
       {
         state: "an allowed",
         projectRedirectURL: "this_is_a_redirect_url",
-        projectScope: ["field1", "field2"],
+        projectScope: [Scope.GIVEN_NAME, Scope.FAMILY_NAME],
         inputRedirectURL: "this_is_a_redirect_url",
-        inputScope: ["field1", "field2"],
+        inputScope: [Scope.GIVEN_NAME, Scope.FAMILY_NAME],
         expectedValidated: true,
       },
     ].forEach(({ state, projectRedirectURL, projectScope, inputRedirectURL, inputScope, expectedValidated }) =>

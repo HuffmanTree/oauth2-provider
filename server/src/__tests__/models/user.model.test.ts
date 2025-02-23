@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { Sequelize } from "sequelize";
-import { UserModel } from "../../models/user.model.js";
+import { isScope, UserModel } from "../../models/user.model.js";
 
 describe("UserModel", () => {
   const sequelize = new Sequelize({
@@ -35,5 +35,10 @@ describe("UserModel", () => {
 
         expect(user.verifyPassword(inputPassword)).to.equal(expectedValidated);
       }));
+  });
+
+  describe("isScope", () => {
+    expect(isScope("profile")).to.be.true;
+    expect(isScope("other")).to.be.false;
   });
 });

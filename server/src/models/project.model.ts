@@ -8,7 +8,7 @@ import {
   Model,
   Sequelize,
 } from "sequelize";
-import { UserModel } from "./user.model.js";
+import { Scope, UserModel } from "./user.model.js";
 
 /**
  * @description Programmatic interface with the database project model
@@ -59,7 +59,7 @@ export class ProjectModel extends Model<
    *
    * @example ["email", "family_name"]
    */
-  declare scope: Array<string>;
+  declare scope: Array<Scope>;
 
   /**
    * @description Creator of the project
@@ -82,7 +82,7 @@ export class ProjectModel extends Model<
    */
   declare updatedAt: CreationOptional<string>;
 
-  allowRequest(redirectURL: string, scope: Array<string>): boolean {
+  allowRequest(redirectURL: string, scope: Array<Scope>): boolean {
     if (redirectURL !== this.redirectURL) return false;
 
     return scope.every(s => this.scope.includes(s));
@@ -138,7 +138,7 @@ export class ProjectModel extends Model<
         },
         scope: {
           comment: "Scope of the project",
-          type: DataTypes.ARRAY(DataTypes.STRING),
+          type: DataTypes.ARRAY(DataTypes.ENUM(...Object.values(Scope))),
           allowNull: false,
         },
         creator: {

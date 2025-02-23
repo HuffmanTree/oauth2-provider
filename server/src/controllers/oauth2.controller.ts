@@ -4,6 +4,7 @@ import { LoggerLevel } from "js-logger/levels";
 import { ConsoleTransport } from "js-logger/transports";
 import { EmptyResultError } from "sequelize";
 import { Forbidden } from "../middlewares/error.middleware.js";
+import { isScope, Scope } from "../models/user.model.js";
 import { AuthService } from "../services/auth.service.js";
 import { ProjectService } from "../services/project.service.js";
 import { RequestService } from "../services/request.service.js";
@@ -70,7 +71,7 @@ export class OAuth2Controller {
   ): Promise<void> {
     try {
       const { client_id: clientId, redirect_uri } = req.query;
-      const scope = req.query.scope.split(",");
+      const scope = req.query.scope.split(",").filter(isScope);
       const resourceOwner = res.locals.user;
 
       const project = await this._projectService.findById(clientId);
@@ -143,7 +144,7 @@ export class OAuth2Controller {
         expires_in: 3600,
       };
 
-      if (request.scope.includes("openid")) {
+      if (request.scope.includes(Scope.OPENID)) {
         const user = await this._userService.findById(request.resourceOwner, request.scope.filter(scope => scope !== "openid"));
 
         json.id_token = await this._authService.login(user, { skipPasswordVerification: true });

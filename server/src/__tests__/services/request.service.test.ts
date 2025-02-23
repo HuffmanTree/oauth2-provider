@@ -1,6 +1,7 @@
 import { expect } from "chai";
 import { Sequelize } from "sequelize";
 import { match, spy } from "sinon";
+import { Scope } from "../../models/user.model.js";
 import { RequestService } from "../../services/request.service.js";
 import { fakeRequestModel } from "../helpers/models.helper.js";
 
@@ -16,7 +17,7 @@ describe("RequestService", () => {
     it("creates a request", async function () {
       const create = spy(RequestModel, "create");
 
-      const result = await service.create({ resourceOwner: "userId", clientId: "projectId", scope: ["family_name", "email"] });
+      const result = await service.create({ resourceOwner: "userId", clientId: "projectId", scope: [Scope.FAMILY_NAME, Scope.EMAIL] });
 
       expect(create.calledOnceWithExactly({ resourceOwner: "userId", clientId: "projectId", scope: ["family_name", "email"], code: match.string })).to.be.true;
       expect(result)

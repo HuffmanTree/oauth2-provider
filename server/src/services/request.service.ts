@@ -4,6 +4,7 @@ import { LoggerLevel } from "js-logger/levels";
 import { ConsoleTransport } from "js-logger/transports";
 import { EmptyResultError, Sequelize, Op } from "sequelize";
 import { RequestModel } from "../models/request.model.js";
+import { Scope } from "../models/user.model.js";
 
 export class RequestService {
   private _logger: Logger;
@@ -22,7 +23,7 @@ export class RequestService {
   async create(payload: {
     resourceOwner: string;
     clientId: string;
-    scope: Array<string>;
+    scope: Array<Scope>;
   }): Promise<RequestModel> {
     const code = randomBytes(8).toString("hex");
 
