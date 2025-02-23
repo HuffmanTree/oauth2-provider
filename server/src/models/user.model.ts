@@ -22,6 +22,28 @@ export function isScope(s: string): s is Scope {
   return Object.values(Scope).includes(s as Scope);
 }
 
+export enum Claim {
+  SUB = "sub",
+  GENDER = "gender",
+  BIRTHDATE = "birthdate",
+  GIVEN_NAME = "given_name",
+  FAMILY_NAME = "family_name",
+  EMAIL = "email",
+  PICTURE = "picture",
+}
+
+export function scopeToClaim(scope: Scope): Array<Claim | string | [string, Claim]> {
+  switch (scope) {
+    case Scope.OPENID: return ["id", ["id", Claim.SUB]];
+    case Scope.GENDER: return [Claim.GENDER];
+    case Scope.BIRTHDATE: return [Claim.BIRTHDATE];
+    case Scope.GIVEN_NAME: return [Claim.GIVEN_NAME];
+    case Scope.FAMILY_NAME: return [Claim.FAMILY_NAME];
+    case Scope.EMAIL: return [Claim.EMAIL];
+    case Scope.PROFILE: return [Claim.BIRTHDATE, Claim.GENDER, Claim.GIVEN_NAME, Claim.FAMILY_NAME, Claim.PICTURE];
+  }
+}
+
 /**
  * @description Programmatic interface with the database user model
  *

@@ -2,7 +2,7 @@ import { Logger } from "js-logger";
 import { LoggerLevel } from "js-logger/levels";
 import { ConsoleTransport } from "js-logger/transports";
 import { EmptyResultError } from "sequelize";
-import { UserModel } from "../models/user.model.js";
+import { Claim, UserModel } from "../models/user.model.js";
 
 export class UserService {
   private _logger: Logger;
@@ -35,7 +35,7 @@ export class UserService {
     return result;
   }
 
-  async findById(id: string, attributes?: Array<string>): Promise<UserModel> {
+  async findById(id: string, attributes?: Array<Claim | string | [string, Claim]>): Promise<UserModel> {
     const result = await this._model.findByPk(id, {
       attributes,
       rejectOnEmpty: new EmptyResultError(`User not found: '${id}'`),

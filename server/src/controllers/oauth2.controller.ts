@@ -4,7 +4,7 @@ import { LoggerLevel } from "js-logger/levels";
 import { ConsoleTransport } from "js-logger/transports";
 import { EmptyResultError } from "sequelize";
 import { Forbidden } from "../middlewares/error.middleware.js";
-import { isScope, Scope } from "../models/user.model.js";
+import { isScope, Scope, scopeToClaim } from "../models/user.model.js";
 import { AuthService } from "../services/auth.service.js";
 import { ProjectService } from "../services/project.service.js";
 import { RequestService } from "../services/request.service.js";
@@ -145,7 +145,7 @@ export class OAuth2Controller {
       };
 
       if (request.scope.includes(Scope.OPENID)) {
-        const user = await this._userService.findById(request.resourceOwner, request.scope.filter(scope => scope !== "openid"));
+        const user = await this._userService.findById(request.resourceOwner, request.scope.flatMap(scopeToClaim));
 
         json.id_token = await this._authService.login(user, { skipPasswordVerification: true });
       }
@@ -170,7 +170,7 @@ export class OAuth2Controller {
     try {
       const token = res.locals.token;
       const request = await this._requestService.findByToken({ token });
-      const user = await this._userService.findById(request.resourceOwner, request.scope.filter(scope => scope !== "openid"));
+      const user = await this._userService.findById(request.resourceOwner, request.scope.flatMap(scopeToClaim));
 
       const json = user.toJSON();
 
