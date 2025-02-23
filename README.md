@@ -41,3 +41,11 @@ Launch unit tests with the following command (server only for now)
 ```sh
 npm run test
 ```
+
+## Demo script
+
+A TypeScript demo script is available using the command below. It requires [deno](https://docs.deno.com/runtime/getting_started/installation/) installed.
+
+```sh
+npm run demo
+```
