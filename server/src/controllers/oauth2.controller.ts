@@ -70,13 +70,13 @@ export class OAuth2Controller {
     next: NextFunction,
   ): Promise<void> {
     try {
-      const { client_id: clientId, redirect_uri } = req.query;
+      const { client_id: clientId, redirect_uri: redirectURI } = req.query;
       const scope = req.query.scope.split(",").filter(isScope);
       const resourceOwner = res.locals.user;
 
       const project = await this._projectService.findById(clientId);
 
-      if (!project.allowRequest(redirect_uri, scope)) {
+      if (!project.allowRequest(redirectURI, scope)) {
         this._logger.debug("Disallowed request", { project: project.id });
 
         throw new Error("Disallowed request");
@@ -93,7 +93,7 @@ export class OAuth2Controller {
         scope,
       });
 
-      res.redirect(`${redirect_uri}?code=${result.code}`);
+      res.redirect(`${redirectURI}?code=${result.code}`);
     } catch (err) {
       if (this._isForbidden(err)) {
         const original = new Error("Project not allowed to request");

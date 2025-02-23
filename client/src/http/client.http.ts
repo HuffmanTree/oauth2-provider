@@ -10,7 +10,8 @@ export async function login(body: {
   const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/login`, {
     method: "POST",
     headers: {
-      "Content-Type": "application/json",
+      // eslint-disable-next-line @typescript-eslint/naming-convention
+      "content-type": "application/json",
     },
     body: JSON.stringify(body),
   });
@@ -31,7 +32,7 @@ export async function authorize(query: {
   });
   await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/oauth2/authorize?${qs}`, {
     headers: {
-      Authorization: `Bearer ${localStorage.getItem("token")}`,
+      authorization: `Bearer ${localStorage.getItem("token")}`,
     },
   });
 }

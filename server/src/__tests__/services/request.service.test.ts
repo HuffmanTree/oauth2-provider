@@ -7,15 +7,15 @@ import { fakeRequestModel } from "../helpers/models.helper.js";
 
 describe("RequestService", () => {
   let service: RequestService;
-  const RequestModel = fakeRequestModel();
+  const requestModel = fakeRequestModel();
 
   before(function () {
-    service = new RequestService(RequestModel);
+    service = new RequestService(requestModel);
   });
 
   describe("create", () => {
     it("creates a request", async function () {
-      const create = spy(RequestModel, "create");
+      const create = spy(requestModel, "create");
 
       const result = await service.create({ resourceOwner: "userId", clientId: "projectId", scope: [Scope.FAMILY_NAME, Scope.EMAIL] });
 
@@ -32,7 +32,7 @@ describe("RequestService", () => {
 
   describe("token", () => {
     it("adds a token to a request", async function () {
-      const request = await RequestModel.findByPk("id", { rejectOnEmpty: true });
+      const request = await requestModel.findByPk("id", { rejectOnEmpty: true });
       const update = spy(request, "update");
 
       const result = await service.token(request);
@@ -53,7 +53,7 @@ describe("RequestService", () => {
 
   describe("findByClientIdAndCode", () => {
     it("finds a request from its client id and authorization code", async function () {
-      const findOne = spy(RequestModel, "findOne");
+      const findOne = spy(requestModel, "findOne");
 
       const result = await service.findByClientIdAndCode({ clientId: "projectId", code: "code" });
 
@@ -65,7 +65,7 @@ describe("RequestService", () => {
 
   describe("findByToken", () => {
     it("finds a request from its access token", async function () {
-      const findOne = spy(RequestModel, "findOne");
+      const findOne = spy(requestModel, "findOne");
 
       const result = await service.findByToken({ token: "token" });
 

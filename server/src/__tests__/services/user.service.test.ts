@@ -5,15 +5,15 @@ import { fakeUserModel } from "../helpers/models.helper.js";
 
 describe("UserService", () => {
   let service: UserService;
-  const UserModel = fakeUserModel();
+  const userModel = fakeUserModel();
 
   before(function () {
-    service = new UserService(UserModel);
+    service = new UserService(userModel);
   });
 
   describe("create", () => {
     it("creates a user", async function () {
-      const create = spy(UserModel, "create");
+      const create = spy(userModel, "create");
 
       const result = await service.create({ givenName: "Jane", familyName: "Doe", email: "user@domain.fr", birthdate: "2000-02-03", picture: "https://domain.com/me.png", gender: "female", password: "secret" });
 
@@ -25,7 +25,7 @@ describe("UserService", () => {
 
   describe("findById", () => {
     it("finds a user from its id", async function () {
-      const findByPk = spy(UserModel, "findByPk");
+      const findByPk = spy(userModel, "findByPk");
 
       const result = await service.findById("id");
 
@@ -37,7 +37,7 @@ describe("UserService", () => {
 
   describe("findByEmail", () => {
     it("finds a user from an email", async function () {
-      const findOne = spy(UserModel, "findOne");
+      const findOne = spy(userModel, "findOne");
 
       const result = await service.findByEmail("user@domain.fr");
 
@@ -49,7 +49,7 @@ describe("UserService", () => {
 
   describe("update", () => {
     it("updates a user", async function () {
-      const user = await UserModel.findByPk("id", { rejectOnEmpty: true });
+      const user = await userModel.findByPk("id", { rejectOnEmpty: true });
       const update = spy(user, "update");
 
       const result = await service.update(user, { email: "updated-user@domain.fr" });
@@ -62,7 +62,7 @@ describe("UserService", () => {
 
   describe("destroy", () => {
     it("destroys a user", async function () {
-      const user = await UserModel.findOne({ rejectOnEmpty: true });
+      const user = await userModel.findOne({ rejectOnEmpty: true });
       const destroy = spy(user, "destroy");
 
       const result = await service.destroy(user);

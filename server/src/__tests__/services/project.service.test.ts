@@ -6,15 +6,15 @@ import { fakeProjectModel } from "../helpers/models.helper.js";
 
 describe("ProjectService", () => {
   let service: ProjectService;
-  const ProjectModel = fakeProjectModel();
+  const projectModel = fakeProjectModel();
 
   before(function () {
-    service = new ProjectService(ProjectModel);
+    service = new ProjectService(projectModel);
   });
 
   describe("create", () => {
     it("creates a project", async function () {
-      const create = spy(ProjectModel, "create");
+      const create = spy(projectModel, "create");
 
       const result = await service.create({ name: "My project", redirectURL: "http://domain.fr", scope: [Scope.FAMILY_NAME, Scope.EMAIL], creator: "userId" });
 
@@ -31,7 +31,7 @@ describe("ProjectService", () => {
 
   describe("findById", () => {
     it("finds a project from its id", async function () {
-      const findByPk = spy(ProjectModel, "findByPk");
+      const findByPk = spy(projectModel, "findByPk");
 
       const result = await service.findById("id");
 
